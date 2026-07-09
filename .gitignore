@@ -1,0 +1,78 @@
+## Ignore Visual Studio temporary files, build results, and user settings
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userresource
+*.userprev
+*.aps
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Mono auto generated files
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leasePublic/
+x64/
+x86/
+[AAr]rm/
+[AAr]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Log]s/
+[Ff]ormats/
+
+# Visual Studio 2015/2017/2019/2022 cache directory
+.vs/
+
+# MSTest test Results
+[T]est[R]esult*/
+[B]uild[L]og.*
+
+# NUnit
+*.VisualState.xml
+
+# Output of MSBuild
+*.suo
+*.user
+*.cache
+*.db
+*.opendb
+*.placeholder
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, since NuGet client introduces backup outputs there
+!**/[Pp]ackages/build/
+# uncomment if using NuGet SignTool
+# !**/[Pp]ackages/net45/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# Local History for Visual Studio Code
+.history/
+
+# Windows image analyses cache
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# SQLite Database files (generated locally)
+*.db-shm
+*.db-wal

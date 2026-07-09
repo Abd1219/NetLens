@@ -1,0 +1,9 @@
+<Page
+    x:Class="NetLens.UI.Views.HistoryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#141414">
+    <Grid>
+        <TextBlock Text="Session History (Coming in v1.5)" Foreground="#E8E8E8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
+    </Grid>
+</Page>
