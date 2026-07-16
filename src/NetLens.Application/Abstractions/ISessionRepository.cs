@@ -10,6 +10,7 @@ public interface ISessionRepository
 {
     Task SaveSessionAsync(DiagnosticSession session, CancellationToken cancellationToken);
     Task<IReadOnlyList<SessionSummary>> GetRecentSessionsAsync(int count, CancellationToken cancellationToken);
+    Task<DiagnosticSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken);
 }
 
 /// <summary>

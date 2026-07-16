@@ -2,8 +2,100 @@
     x:Class="NetLens.UI.Views.DiagnosticsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:NetLens.UI.Converters"
     Background="#141414">
-    <Grid>
-        <TextBlock Text="Active Tests (Coming in v2.0)" Foreground="#E8E8E8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
-    </Grid>
+
+    <Page.Resources>
+        <converters:SeverityToBrushConverter x:Key="SeverityToBrushConverter"/>
+        <converters:ZeroToVisibleConverter x:Key="ZeroToVisibleConverter"/>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Padding="24,20" Spacing="24">
+
+            <!-- Title Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Diagnostics Engine" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
+                <TextBlock Text="Deterministic rule engine analysis of active interfaces" FontSize="14" Foreground="#888888"/>
+            </StackPanel>
+
+            <!-- Manual Controls & Status -->
+            <Border Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Manual Diagnostic Scan" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="13" Foreground="#AAAAAA" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Command="{Binding RunDiagnosticCommand}"
+                            IsEnabled="{Binding IsRunning, Converter={StaticResource ZeroToVisibleConverter}}"
+                            Content="Run Diagnostic Check"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Padding="16,8"
+                            VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Diagnostic Results Panel -->
+            <Grid ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Health Score Display -->
+                <Border Grid.Column="0" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" Height="200">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                        <TextBlock Text="Health Score" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding HealthScore}" FontSize="64" FontWeight="Bold" Foreground="#0078D4" HorizontalAlignment="Center"/>
+                        <TextBlock Text="/ 100" FontSize="14" Foreground="#666666" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Diagnostic Issues List -->
+                <Border Grid.Column="1" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" MinHeight="200">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Active Rule Violations" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+
+                        <ItemsControl ItemsSource="{Binding Results}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,10" CornerRadius="6" Background="#242424" Margin="0,0,0,8">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="4"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" CornerRadius="2" Background="{Binding Severity, Converter={StaticResource SeverityToBrushConverter}}"/>
+
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="{Binding Summary}" FontSize="13" Foreground="#E8E8E8" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Recommendation}" FontSize="12" Foreground="#888888" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty state / Scan Normal -->
+                        <StackPanel
+                            Visibility="{Binding Results.Count, Converter={StaticResource ZeroToVisibleConverter}}"
+                            HorizontalAlignment="Center" Spacing="8" Padding="0,32">
+                            <TextBlock Text="✓" FontSize="36" Foreground="#107C10" HorizontalAlignment="Center"/>
+                            <TextBlock Text="No active rule violations detected." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
 </Page>

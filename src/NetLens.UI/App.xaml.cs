@@ -11,7 +11,7 @@ using NetLens.Infrastructure.Repositories;
 using NetLens.Network.Adapters;
 using NetLens.Network.Diagnostics;
 using NetLens.Network.Wifi;
-// using NetLens.Reporting;
+using NetLens.Reporting;
 using NetLens.Services;
 using NetLens.UI.ViewModels;
 using NetLens.UI.Views;
@@ -25,6 +25,7 @@ namespace NetLens.UI;
 public partial class App : Microsoft.UI.Xaml.Application
 {
     public static IHost Host { get; private set; } = null!;
+    public static MainWindow? MainWindow { get; private set; }
 
     /// <summary>
     /// Shorthand for accessing the DI container.
@@ -76,7 +77,7 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddHostedService<TelemetryBackgroundService>();
 
         // ── Reporting ────────────────────────────────────────
-        // services.AddSingleton<IReportGenerator, DiagnosticReportGenerator>();
+        services.AddSingleton<IReportGenerator, DiagnosticReportGenerator>();
 
         // ── UI — Windows & Pages ─────────────────────────────
         services.AddTransient<MainWindow>();
@@ -101,7 +102,7 @@ public partial class App : Microsoft.UI.Xaml.Application
         var db = scope.ServiceProvider.GetRequiredService<NetLensDbContext>();
         await db.Database.EnsureCreatedAsync();
 
-        var window = Services.GetRequiredService<MainWindow>();
-        window.Activate();
+        MainWindow = Services.GetRequiredService<MainWindow>();
+        MainWindow.Activate();
     }
 }

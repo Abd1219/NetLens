@@ -11,7 +11,7 @@ public sealed class DiagnosticSession
     private readonly List<TimelineEvent> _timeline = [];
     private readonly List<WirelessSnapshot> _ledger = [];
 
-    public Guid SessionId { get; } = Guid.NewGuid();
+    public Guid SessionId { get; }
     public DateTimeOffset StartedAt { get; }
     public DateTimeOffset? EndedAt { get; private set; }
     public DiagnosticSessionState State { get; private set; }
@@ -29,8 +29,17 @@ public sealed class DiagnosticSession
 
     public DiagnosticSession()
     {
+        SessionId = Guid.NewGuid();
         StartedAt = DateTimeOffset.UtcNow;
         State = DiagnosticSessionState.Initializing;
+    }
+
+    public DiagnosticSession(Guid sessionId, DateTimeOffset startedAt, DateTimeOffset? endedAt, DiagnosticSessionState state)
+    {
+        SessionId = sessionId;
+        StartedAt = startedAt;
+        EndedAt = endedAt;
+        State = state;
     }
 
     public void Start()

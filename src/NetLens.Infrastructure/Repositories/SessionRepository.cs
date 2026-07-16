@@ -77,6 +77,74 @@ public sealed class SessionRepository : ISessionRepository
             r.TimelineEvents.Count)).ToList().AsReadOnly();
     }
 
+    public async Task<DiagnosticSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        var record = await _context.Sessions
+            .Include(s => s.TimelineEvents)
+            .Include(s => s.Snapshots)
+            .FirstOrDefaultAsync(s => s.SessionId == sessionId, cancellationToken);
+
+        if (record is null) return null;
+
+        var state = record.EndedAt.HasValue 
+            ? DiagnosticSessionState.Ended 
+            : DiagnosticSessionState.Monitoring;
+
+        var session = new DiagnosticSession(record.SessionId, record.StartedAt, record.EndedAt, state);
+        session.SetClientInfo(record.ClientName ?? "", record.SiteName ?? "", record.OperatorName ?? "");
+
+        foreach (var evRecord in record.TimelineEvents)
+        {
+            var severity = Enum.TryParse<TimelineEventSeverity>(evRecord.Severity ?? "", out var parsedSeverity)
+                ? parsedSeverity
+                : TimelineEventSeverity.Info;
+
+            var evidence = string.IsNullOrWhiteSpace(evRecord.EvidenceJson)
+                ? new Dictionary<string, string>()
+                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(evRecord.EvidenceJson);
+
+            session.AddTimelineEvent(new TimelineEvent(
+                evRecord.OccurredAt,
+                evRecord.EventCode ?? "",
+                evRecord.Description ?? "",
+                evRecord.Origin ?? "",
+                severity,
+                evidence));
+        }
+
+        foreach (var snapRecord in record.Snapshots)
+        {
+            var rssi = new RSSI(snapRecord.RssiDbm);
+            var quality = SignalQuality.FromRssi(rssi);
+
+            session.RecordSnapshot(new WirelessSnapshot(
+                snapRecord.CapturedAt,
+                rssi,
+                new PhyRate(snapRecord.TxRateMbps),
+                new PhyRate(snapRecord.RxRateMbps),
+                new Channel(snapRecord.Channel),
+                new Frequency(snapRecord.FrequencyMhz),
+                quality,
+                snapRecord.Ssid ?? "",
+                new MacAddress(snapRecord.Bssid ?? "00:00:00:00:00:00"),
+                snapRecord.PhysicalType ?? "",
+                new Latency(snapRecord.GatewayLatencyMs),
+                new Latency(snapRecord.DnsLatencyMs),
+                new Latency(snapRecord.InternetLatencyMs),
+                new PacketLossRate(snapRecord.PacketLossPercent),
+                new Jitter(snapRecord.JitterMs),
+                new IPAddressValue(snapRecord.LocalIp ?? "0.0.0.0"),
+                new IPAddressValue(snapRecord.GatewayIp ?? "0.0.0.0"),
+                new IPAddressValue(snapRecord.DnsIp ?? "0.0.0.0"),
+                new MacAddress("00:00:00:00:00:00"),
+                snapRecord.CpuUsagePercent,
+                snapRecord.RamUsagePercent
+            ));
+        }
+
+        return session;
+    }
+
     private static WirelessSnapshotRecord MapSnapshot(WirelessSnapshot s) => new()
     {
         SnapshotId = Guid.NewGuid(),
