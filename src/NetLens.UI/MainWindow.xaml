@@ -30,6 +30,12 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem
+                    Tag="Discovery"
+                    Icon="Find"
+                    Content="Discovery"
+                    ToolTipService.ToolTip="Scan local subnet and trace routes"/>
+
+                <NavigationViewItem
                     Tag="Diagnostics"
                     Icon="Repair"
                     Content="Active Tests"

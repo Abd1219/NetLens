@@ -17,6 +17,7 @@ public sealed partial class MainWindow : Window
     {
         { "Dashboard", typeof(DashboardPage) },
         { "WifiExplorer", typeof(WifiExplorerPage) },
+        { "Discovery", typeof(DiscoveryPage) },
         { "Diagnostics", typeof(DiagnosticsPage) },
         { "History", typeof(HistoryPage) }
     };

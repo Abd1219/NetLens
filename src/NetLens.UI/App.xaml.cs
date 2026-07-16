@@ -11,6 +11,8 @@ using NetLens.Infrastructure.Repositories;
 using NetLens.Network.Adapters;
 using NetLens.Network.Diagnostics;
 using NetLens.Network.Wifi;
+using NetLens.Network.Discovery;
+using NetLens.Network.PacketCapture;
 using NetLens.Reporting;
 using NetLens.Services;
 using NetLens.UI.ViewModels;
@@ -73,8 +75,16 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddSingleton<SystemMetricsCollector>();
         services.AddSingleton<ITelemetryCollector, WifiTelemetryCollector>();
 
+        // ── Discovery & Capture ──────────────────────────────
+        services.AddSingleton<ArpResolver>();
+        services.AddSingleton<HostnameResolver>();
+        services.AddSingleton<SubnetScanner>();
+        services.AddSingleton<TracerouteService>();
+        services.AddSingleton<IPacketCapture, NullPacketCapture>();
+
         // ── Background Services ──────────────────────────────
         services.AddHostedService<TelemetryBackgroundService>();
+        services.AddHostedService<CorrelationEngine>();
 
         // ── Reporting ────────────────────────────────────────
         services.AddSingleton<IReportGenerator, DiagnosticReportGenerator>();
@@ -83,12 +93,14 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddTransient<MainWindow>();
         services.AddTransient<DashboardPage>();
         services.AddTransient<WifiExplorerPage>();
+        services.AddTransient<DiscoveryPage>();
         services.AddTransient<DiagnosticsPage>();
         services.AddTransient<HistoryPage>();
 
         // ── UI — ViewModels ──────────────────────────────────
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<WifiExplorerViewModel>();
+        services.AddSingleton<DiscoveryViewModel>();
         services.AddTransient<DiagnosticsViewModel>();
         services.AddTransient<HistoryViewModel>();
     }
