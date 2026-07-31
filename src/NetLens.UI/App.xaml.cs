@@ -105,14 +105,41 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddTransient<HistoryViewModel>();
     }
 
+    /// <summary>
+    /// SQLite schema version. Bump when persistence entities change (e.g. DateTimeOffset -> DateTime).
+    /// </summary>
+    private const int DatabaseSchemaVersion = 2;
+
+    private static async Task EnsureDatabaseSchemaAsync(NetLensDbContext db)
+    {
+        await db.Database.OpenConnectionAsync();
+        try
+        {
+            await using var versionCommand = db.Database.GetDbConnection().CreateCommand();
+            versionCommand.CommandText = "PRAGMA user_version";
+            var storedVersion = Convert.ToInt32(await versionCommand.ExecuteScalarAsync() ?? 0);
+
+            if (storedVersion == DatabaseSchemaVersion)
+                return;
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+        await db.Database.ExecuteSqlRawAsync($"PRAGMA user_version = {DatabaseSchemaVersion}");
+    }
+
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         await Host.StartAsync();
 
-        // Ensure DB is created on first run
+        // Ensure DB schema is current (recreates when version changes)
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NetLensDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await EnsureDatabaseSchemaAsync(db);
 
         MainWindow = Services.GetRequiredService<MainWindow>();
         MainWindow.Activate();

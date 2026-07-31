@@ -91,7 +91,7 @@ dotnet build NetLens.sln -c Debug
 dotnet run --project src/NetLens.UI/NetLens.UI.csproj
 ```
 
-> **Nota**: La primera ejecución crea automáticamente la base de datos SQLite `netlens.db` en el directorio de ejecución.
+> **Nota**: La primera ejecución crea automáticamente la base de datos SQLite `netlens.db` en el directorio de ejecución. Si el esquema cambia, la BD se recrea automáticamente (versionado via `PRAGMA user_version`).
 
 ---
 

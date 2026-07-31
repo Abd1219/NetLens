@@ -7,8 +7,8 @@ namespace NetLens.Database.Entities;
 public sealed class DiagnosticSessionRecord
 {
     public Guid SessionId { get; set; }
-    public DateTimeOffset StartedAt { get; set; }
-    public DateTimeOffset? EndedAt { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? EndedAt { get; set; }
     public string? ClientName { get; set; }
     public string? SiteName { get; set; }
     public string? OperatorName { get; set; }
@@ -25,7 +25,7 @@ public sealed class TimelineEventRecord
 {
     public Guid EventId { get; set; }
     public Guid SessionId { get; set; }
-    public DateTimeOffset OccurredAt { get; set; }
+    public DateTime OccurredAt { get; set; }
     public string EventCode { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Origin { get; set; } = string.Empty;
@@ -42,7 +42,7 @@ public sealed class WirelessSnapshotRecord
 {
     public Guid SnapshotId { get; set; } = Guid.NewGuid();
     public Guid SessionId { get; set; }
-    public DateTimeOffset CapturedAt { get; set; }
+    public DateTime CapturedAt { get; set; }
 
     public string Ssid { get; set; } = string.Empty;
     public string Bssid { get; set; } = string.Empty;

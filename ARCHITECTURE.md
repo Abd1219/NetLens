@@ -163,7 +163,7 @@ Persistencia con **Entity Framework Core 9 + SQLite**.
 
 ### NetLens.Infrastructure
 
-- **`SessionRepository.cs`**: Implementa `ISessionRepository`. Guarda y recupera `DiagnosticSession` desde SQLite, mapeando entre entidades de dominio y BD.
+- **`SessionRepository.cs`**: Implementa `ISessionRepository`. Guarda y recupera `DiagnosticSession` desde SQLite, mapeando entre entidades de dominio y BD. Convierte `DateTimeOffset` ↔ `DateTime UTC` en lectura/escritura.
 
 ---
 
@@ -203,7 +203,7 @@ Capa de presentación **WinUI 3** con patrón **MVVM puro** usando CommunityTool
 - Actualizaciones de UI siempre se despachan al hilo principal via `DispatcherQueue.TryEnqueue()`
 
 #### Composición DI (`App.xaml.cs`)
-`App.xaml.cs` actúa como **Composition Root** usando `Microsoft.Extensions.Hosting`. Registra todos los servicios, inicia el Host y crea la ventana principal. La base de datos SQLite se crea automáticamente en el primer arranque via `db.Database.EnsureCreatedAsync()`.
+`App.xaml.cs` actúa como **Composition Root** usando `Microsoft.Extensions.Hosting`. Registra todos los servicios, inicia el Host y crea la ventana principal. La base de datos SQLite se inicializa via `EnsureDatabaseSchemaAsync()`: comprueba `PRAGMA user_version` y recrea el esquema automáticamente si la versión cambió (actualmente v2).
 
 ---
 

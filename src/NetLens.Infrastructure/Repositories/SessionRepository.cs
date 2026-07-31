@@ -26,8 +26,8 @@ public sealed class SessionRepository : ISessionRepository
         var record = new DiagnosticSessionRecord
         {
             SessionId = session.SessionId,
-            StartedAt = session.StartedAt,
-            EndedAt = session.EndedAt,
+            StartedAt = ToUtcDateTime(session.StartedAt),
+            EndedAt = session.EndedAt.HasValue ? ToUtcDateTime(session.EndedAt.Value) : null,
             ClientName = session.ClientName,
             SiteName = session.SiteName,
             OperatorName = session.OperatorName,
@@ -35,7 +35,7 @@ public sealed class SessionRepository : ISessionRepository
             {
                 EventId = e.EventId,
                 SessionId = session.SessionId,
-                OccurredAt = e.OccurredAt,
+                OccurredAt = ToUtcDateTime(e.OccurredAt),
                 EventCode = e.EventCode,
                 Description = e.Description,
                 Origin = e.Origin,
@@ -69,8 +69,8 @@ public sealed class SessionRepository : ISessionRepository
 
         return records.Select(r => new SessionSummary(
             r.SessionId,
-            r.StartedAt,
-            r.EndedAt,
+            ToDateTimeOffset(r.StartedAt),
+            r.EndedAt.HasValue ? ToDateTimeOffset(r.EndedAt.Value) : null,
             r.ClientName,
             r.SiteName,
             r.Snapshots.Count,
@@ -90,7 +90,11 @@ public sealed class SessionRepository : ISessionRepository
             ? DiagnosticSessionState.Ended 
             : DiagnosticSessionState.Monitoring;
 
-        var session = new DiagnosticSession(record.SessionId, record.StartedAt, record.EndedAt, state);
+        var session = new DiagnosticSession(
+            record.SessionId,
+            ToDateTimeOffset(record.StartedAt),
+            record.EndedAt.HasValue ? ToDateTimeOffset(record.EndedAt.Value) : null,
+            state);
         session.SetClientInfo(record.ClientName ?? "", record.SiteName ?? "", record.OperatorName ?? "");
 
         foreach (var evRecord in record.TimelineEvents)
@@ -104,7 +108,7 @@ public sealed class SessionRepository : ISessionRepository
                 : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(evRecord.EvidenceJson);
 
             session.AddTimelineEvent(new TimelineEvent(
-                evRecord.OccurredAt,
+                ToDateTimeOffset(evRecord.OccurredAt),
                 evRecord.EventCode ?? "",
                 evRecord.Description ?? "",
                 evRecord.Origin ?? "",
@@ -118,7 +122,7 @@ public sealed class SessionRepository : ISessionRepository
             var quality = SignalQuality.FromRssi(rssi);
 
             session.RecordSnapshot(new WirelessSnapshot(
-                snapRecord.CapturedAt,
+                ToDateTimeOffset(snapRecord.CapturedAt),
                 rssi,
                 new PhyRate(snapRecord.TxRateMbps),
                 new PhyRate(snapRecord.RxRateMbps),
@@ -148,7 +152,7 @@ public sealed class SessionRepository : ISessionRepository
     private static WirelessSnapshotRecord MapSnapshot(WirelessSnapshot s) => new()
     {
         SnapshotId = Guid.NewGuid(),
-        CapturedAt = s.CapturedAt,
+        CapturedAt = ToUtcDateTime(s.CapturedAt),
         Ssid = s.Ssid,
         Bssid = s.Bssid.Value,
         RssiDbm = s.Rssi.Value,
@@ -169,4 +173,9 @@ public sealed class SessionRepository : ISessionRepository
         CpuUsagePercent = s.CpuUsagePercent,
         RamUsagePercent = s.RamUsagePercent
     };
+
+    private static DateTime ToUtcDateTime(DateTimeOffset value) => value.UtcDateTime;
+
+    private static DateTimeOffset ToDateTimeOffset(DateTime value) =>
+        new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 }

@@ -10,7 +10,7 @@
 
 **Versión**: v0.5 (Prototipo funcional)
 **Fase**: Desarrollo activo
-**Última actualización**: 2026-07-30
+**Última actualización**: 2026-07-30 (fix historial SQLite)
 
 ### Resumen de componentes
 
@@ -27,7 +27,7 @@
 | WiFi Explorer UI | ✅ Completo | Redes vecinas simuladas |
 | Diagnóstico manual | ✅ Completo | Health Score calculado |
 | Descubrimiento de red | ✅ Completo | ARP + DNS reverso |
-| Historial de sesiones | ✅ Completo | SQLite, últimas 50 sesiones |
+| Historial de sesiones | ✅ Completo | SQLite, últimas 50 sesiones; fix ORDER BY DateTimeOffset aplicado |
 | Exportación PDF | ✅ Completo | QuestPDF, Community License |
 | Captura de paquetes | ❌ Pendiente | NullPacketCapture stub |
 | Redes vecinas reales | ❌ Pendiente | Actualmente datos simulados |
@@ -37,6 +37,33 @@
 ---
 
 ## Historial de avances
+
+### [2026-07-30] — Fix: NotSupportedException en Refresh History
+
+**Tipo**: Bug Fix
+**Quién**: Cursor AI Assistant
+
+**Qué se hizo:**
+- Migradas entidades de persistencia de `DateTimeOffset` a `DateTime` (UTC) en `DatabaseEntities.cs`
+- Añadidas conversiones `ToUtcDateTime` / `ToDateTimeOffset` en `SessionRepository.cs`
+- Implementado versionado de esquema SQLite (`PRAGMA user_version = 2`) en `App.xaml.cs` para recrear la BD automáticamente al cambiar el esquema
+- Añadida dependencia `SQLitePCLRaw.lib.e_sqlite3` en `NetLens.Database.csproj`
+
+**Archivos modificados:**
+- `src/NetLens.Database/Entities/DatabaseEntities.cs` — campos de fecha como `DateTime`
+- `src/NetLens.Infrastructure/Repositories/SessionRepository.cs` — mapeo dominio ↔ BD
+- `src/NetLens.UI/App.xaml.cs` — `EnsureDatabaseSchemaAsync()` con versionado
+- `src/NetLens.Database/NetLens.Database.csproj` — paquete SQLite nativo
+
+**Decisiones tomadas:**
+- Dominio mantiene `DateTimeOffset`; solo la capa de persistencia usa `DateTime UTC`
+- Recreación automática de BD al detectar esquema obsoleto (versión 2), en lugar de migraciones EF Core
+
+**Estado tras este avance:**
+- Refresh History ya no lanza `System.NotSupportedException`
+- Sesiones previas en BD antigua se pierden al actualizar (comportamiento esperado del versionado)
+
+---
 
 ### [2026-07-30] — Subida a GitHub + documentación del proyecto
 
@@ -84,7 +111,7 @@ El proyecto carecía de documentación de contexto. Los archivos `.md` permiten 
 #### Base de datos
 - Implementado `NetLensDbContext` con EF Core 9 + SQLite
 - Creado `SessionRepository` con Save/GetRecent/GetById
-- **Bug resuelto**: `DateTimeOffset` no soportado por SQLite en ORDER BY → migrado a `DateTime UTC` en entidades de BD; dominio mantiene `DateTimeOffset`. Documentado en `REPORTS/DateTimeOffset_to_DateTime_Migration_Report.md`
+- Documentado bug conocido de `DateTimeOffset` + SQLite ORDER BY en `REPORTS/DateTimeOffset_to_DateTime_Migration_Report.md` (resuelto el 2026-07-30)
 
 #### UI WinUI 3
 - Implementadas 5 vistas: Dashboard, WiFi Explorer, Diagnostics, Discovery, History

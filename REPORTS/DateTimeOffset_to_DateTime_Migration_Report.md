@@ -1,76 +1,53 @@
 # Informe: Migración DateTimeOffset -> DateTime (UTC)
 
+## Estado: ✅ Aplicado (2026-07-30)
+
 ## Resumen
-Se detectó una excepción System.NotSupportedException provocada por el uso de DateTimeOffset en una cláusula ORDER BY con SQLite. EF Core no puede traducir ORDER BY sobre DateTimeOffset al dialecto SQLite.
+Se detectó una excepción `System.NotSupportedException` provocada por el uso de `DateTimeOffset` en una cláusula `ORDER BY` con SQLite. EF Core no puede traducir `ORDER BY` sobre `DateTimeOffset` al dialecto SQLite.
 
 ## Hallazgo principal
-- Excepción: SQLite does not support expressions of type 'DateTimeOffset' in ORDER BY clauses.
-- Ubicación: SessionRepository.GetRecentSessionsAsync() — .OrderByDescending(s => s.StartedAt)
+- Excepción: `SQLite does not support expressions of type 'DateTimeOffset' in ORDER BY clauses.`
+- Ubicación: `SessionRepository.GetRecentSessionsAsync()` — `.OrderByDescending(s => s.StartedAt)`
+- Síntoma en UI: crash al pulsar **Refresh History** en `HistoryPage`
 
-## Archivos afectados
-- src/NetLens.Database/Entities/DatabaseEntities.cs
-  - DiagnosticSessionRecord: StartedAt, EndedAt (DateTimeOffset -> DateTime)
-  - TimelineEventRecord: OccurredAt (DateTimeOffset -> DateTime)
-  - WirelessSnapshotRecord: CapturedAt (DateTimeOffset -> DateTime)
-- src/NetLens.Infrastructure/Repositories/SessionRepository.cs
-  - SaveSessionAsync: conversión DateTimeOffset -> DateTime (UtcDateTime)
-  - GetRecentSessionsAsync: ya funcionará tras el cambio en las entidades
-  - GetSessionByIdAsync: conversión DateTime -> DateTimeOffset al reconstruir dominio
-- src/NetLens.Domain/Entities/DiagnosticSession.cs (dominio mantiene DateTimeOffset)
+## Solución implementada
 
-## Cambios propuestos (ejemplos de código)
-1) Entidad: DatabaseEntities.cs
-```csharp
-// Antes
-public DateTimeOffset StartedAt { get; set; }
-public DateTimeOffset? EndedAt { get; set; }
+### 1. Entidades de persistencia (`DatabaseEntities.cs`)
+Campos de fecha migrados de `DateTimeOffset` a `DateTime` (UTC):
+- `DiagnosticSessionRecord`: `StartedAt`, `EndedAt`
+- `TimelineEventRecord`: `OccurredAt`
+- `WirelessSnapshotRecord`: `CapturedAt`
 
-// Después
-public DateTime StartedAt { get; set; }
-public DateTime? EndedAt { get; set; }
-```
-Aplicar mismo cambio para OccurredAt y CapturedAt.
+### 2. Repositorio (`SessionRepository.cs`)
+Helpers de conversión añadidos:
+- `ToUtcDateTime(DateTimeOffset)` — al guardar
+- `ToDateTimeOffset(DateTime)` — al leer (con `DateTimeKind.Utc`)
 
-2) Guardado (SessionRepository.cs)
-```csharp
-record.StartedAt = session.StartedAt.UtcDateTime;
-record.EndedAt = session.EndedAt?.UtcDateTime;
-```
+El dominio (`DiagnosticSession`, `TimelineEvent`, `WirelessSnapshot`) **mantiene `DateTimeOffset`**.
 
-3) Lectura/Reconstrucción del dominio (SessionRepository.cs)
-```csharp
-var startedDto = new DateTimeOffset(DateTime.SpecifyKind(record.StartedAt, DateTimeKind.Utc));
-var endedDto = record.EndedAt.HasValue
-	? new DateTimeOffset(DateTime.SpecifyKind(record.EndedAt.Value, DateTimeKind.Utc))
-	: (DateTimeOffset?)null;
-var session = new DiagnosticSession(record.SessionId, startedDto, endedDto, state);
-```
+### 3. Versionado de esquema (`App.xaml.cs`)
+En lugar de migraciones EF Core, se usa `PRAGMA user_version`:
+- Versión actual del esquema: **2**
+- Si la versión almacenada difiere, la BD se elimina y recrea automáticamente al arrancar
+- Esto garantiza compatibilidad sin intervención manual del usuario
 
-## Pasos de migración sugeridos
-1. Hacer backup de la base de datos SQLite.
-2. Modificar las clases de entidad y el código de conversión.
-3. Generar migración EF Core:
-```bash
-dotnet ef migrations add ConvertDateOffsetToUtcDateTime
-```
-4. Revisar la migración generada (SQLite suele recrear tablas para cambios de tipo).
-5. Aplicar la migración en entorno de pruebas:
-```bash
-dotnet ef database update
-```
-6. Validar datos y pruebas de integración (ordenación, listados, lectura/escritura).
+## Archivos modificados
+- `src/NetLens.Database/Entities/DatabaseEntities.cs`
+- `src/NetLens.Infrastructure/Repositories/SessionRepository.cs`
+- `src/NetLens.UI/App.xaml.cs`
+- `src/NetLens.Database/NetLens.Database.csproj` (añadido `SQLitePCLRaw.lib.e_sqlite3`)
 
-## Complicaciones y riesgos
-- SQLite puede recrear tablas al cambiar tipos; esto puede implicar pérdida si no se maneja export/import.
-- Es necesario comprobar que todos los valores persistidos se interpretan como UTC. Conviene revisar datos históricos.
-- Alternativa temporal: ordenar en cliente (materializar y ordenar en memoria) — impacta rendimiento y escalabilidad.
-- Otra alternativa: usar ValueConverter para persistir DateTimeOffset como ISO8601 string o ticks. Requiere menos cambios al modelo pero cambia almacenamiento.
+## Impacto en datos existentes
+- Bases de datos creadas antes de este fix (sin `user_version = 2`) se recrean al primer arranque
+- **Las sesiones históricas previas se pierden** al actualizar; comportamiento aceptable para prototipo
 
-## Pruebas recomendadas
-- Tests unitarios para SaveSessionAsync/GetSessionByIdAsync.
-- Pruebas de integración contra copia de la base SQLite real.
-- Validar ordenación en GetRecentSessionsAsync después de migración.
+## Alternativas descartadas
+- **Ordenar en cliente**: funciona pero trae todas las filas a memoria; no escala
+- **ValueConverter a string/ticks**: más cambios en almacenamiento, menos legible en SQLite
+- **Migraciones EF Core**: overhead innecesario para prototipo con `EnsureCreated`
 
 ---
 Generado por: GitHub Copilot
-Fecha: REEMPLAZAR_POR_FECHA
+Aplicado por: Cursor AI Assistant
+Fecha detección: 2026-07-30
+Fecha aplicación: 2026-07-30
