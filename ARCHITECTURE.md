@@ -1,35 +1,36 @@
-# NetLens — Arquitectura del Sistema
+# NetLens — System Architecture
 
-> Este documento describe la arquitectura técnica de NetLens para facilitar el contexto a IAs, colaboradores y revisores de código.
-
----
-
-## Principios de diseño
-
-NetLens sigue **Clean Architecture** con las siguientes capas (de interior a exterior):
-
-1. **Domain** — Núcleo puro: entidades, value objects, reglas de negocio
-2. **Application** — Contratos (interfaces) y orquestación ligera
-3. **Infrastructure / Database** — Implementaciones de persistencia
-4. **Network** — Adaptadores de hardware y red (Win32 APIs)
-5. **Services** — Servicios de fondo (background services)
-6. **Reporting** — Generación de reportes
-7. **UI** — Presentación WinUI 3 (MVVM puro)
-
-La **Dependency Rule** es estricta: las capas internas nunca dependen de las externas. La UI y los servicios dependen de abstracciones (interfaces) definidas en Application.
+> This document describes NetLens's technical architecture in detail.
+> It is written to serve as a complete context reference for AI assistants, contributors, and code reviewers — readable without looking at the source code.
 
 ---
 
-## Diagrama de capas
+## Design Principles
+
+NetLens follows **Clean Architecture** with these layers (inner to outer):
+
+1. **Domain** — Pure core: entities, value objects, business rules. No external dependencies.
+2. **Application** — Contracts (interfaces) and lightweight orchestration services.
+3. **Infrastructure / Database** — Persistence implementations (EF Core + SQLite).
+4. **Network** — Hardware and OS adapters (Win32 APIs via P/Invoke).
+5. **Services** — Long-running background services.
+6. **Reporting** — PDF report generation.
+7. **UI** — WinUI 3 presentation (pure MVVM).
+
+**Dependency Rule**: Inner layers never depend on outer layers. UI and services depend only on abstractions defined in Application.
+
+---
+
+## Layer Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      NetLens.UI (WinUI 3)                   │
 │  Views / ViewModels / Converters / Styles                   │
 └──────────────────────────┬──────────────────────────────────┘
-                           │ depende de
+                           │ depends on
 ┌──────────────────────────▼──────────────────────────────────┐
-│              NetLens.Application (Contratos)                │
+│              NetLens.Application (Contracts)                │
 │  IEventBus / ITelemetryCollector / ISessionRepository /    │
 │  IReportGenerator / IRuleEngine / IPacketCapture           │
 └──────┬──────────────┬────────────┬────────────┬────────────┘
@@ -42,60 +43,60 @@ La **Dependency Rule** es estricta: las capas internas nunca dependen de las ext
 │Diagnostics) │ └────────────┘ └─────────┘ └─────────────┘
 └─────────────┘
        │
-       └──── todos dependen de ────────────────────────────────┐
-                                                               │
-┌──────────────────────────────────────────────────────────────▼──┐
-│                   NetLens.Domain                                 │
-│  Entities: WirelessSnapshot, DiagnosticSession, TimelineEvent   │
-│  Value Objects: RSSI, PhyRate, Latency, Jitter, PacketLossRate  │
-│  Rules: IDiagnosticRule + 5 implementaciones                    │
-│  Events: TelemetryCollectedEvent, CorrelationAlertEvent         │
-└─────────────────────────────────────────────────────────────────┘
+       └──── all depend on ──────────────────────────────────┐
+                                                             │
+┌─────────────────────────────────────────────────────────────▼──┐
+│                   NetLens.Domain                                │
+│  Entities: WirelessSnapshot, DiagnosticSession, TimelineEvent  │
+│  Value Objects: RSSI, PhyRate, Latency, Jitter, PacketLossRate │
+│  Rules: IDiagnosticRule + 5 implementations                    │
+│  Events: TelemetryCollectedEvent, CorrelationAlertEvent        │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Módulo por módulo
+## Module Reference
 
 ### NetLens.Domain
 
-El corazón del sistema. **Sin dependencias externas.**
+The system's heart. **Zero external dependencies.**
 
-#### Entidades (Aggregate Roots / Entities)
+#### Entities (Aggregate Roots / Entities)
 
-| Clase | Tipo | Descripción |
+| Class | Type | Description |
 |---|---|---|
-| `DiagnosticSession` | Aggregate Root | Ciclo de vida de una sesión de diagnóstico. Coordina snapshots y timeline. Estado: Initializing → Monitoring → Ended |
-| `WirelessSnapshot` | Entity (sealed record) | Frame inmutable de métricas WiFi capturadas en un instante. Es el "ledger" de la sesión |
-| `TimelineEvent` | Entity | Evento con timestamp, severidad y evidencia. Se añade al timeline de la sesión |
-| `DiscoveredDevice` | Entity | Dispositivo descubierto en la subred (ARP scan) |
-| `CapturedPacket` | Entity | Paquete de red capturado (actualmente stub) |
-| `TracerouteHop` | Entity | Salto individual de un traceroute |
+| `DiagnosticSession` | Aggregate Root | Lifecycle of a diagnostic session. Coordinates snapshots and timeline. States: `Initializing → Monitoring → Ended` |
+| `WirelessSnapshot` | Entity (sealed record) | Immutable frame of WiFi metrics captured at a point in time. Acts as the session's ledger entry |
+| `TimelineEvent` | Entity | Event with timestamp, severity, and evidence. Added to the session's timeline |
+| `DiscoveredDevice` | Entity | Device discovered on the subnet (ARP scan) |
+| `CapturedPacket` | Entity | Captured network packet (currently stub) |
+| `TracerouteHop` | Entity | Individual hop in a traceroute |
 
-#### Value Objects (Model/)
+#### Value Objects (`Domain/Model/`)
 
-Todos son **inmutables** con validación en constructor:
+All are **immutable** with constructor validation:
 
-| Value Object | Rango / Regla |
+| Value Object | Range / Rule |
 |---|---|
-| `RSSI` | -100 a 0 dBm |
+| `RSSI` | -100 to 0 dBm |
 | `PhyRate` | ≥ 0 Mbps |
-| `Channel` | 1-196 |
-| `Frequency` | MHz (2400-6000) |
-| `SignalQuality` | 0-100% calculado desde RSSI |
-| `Latency` | 0-∞ ms, con soporte de Timeout |
+| `Channel` | 1–196 |
+| `Frequency` | MHz (2400–6000) |
+| `SignalQuality` | 0–100% derived from RSSI |
+| `Latency` | 0–∞ ms, supports Timeout |
 | `Jitter` | ≥ 0 ms |
-| `PacketLossRate` | 0-100% |
+| `PacketLossRate` | 0–100% |
 | `Bandwidth` | ≥ 0 Mbps |
-| `HealthScoreValue` | 0-100 |
-| `MacAddress` | Formato `XX:XX:XX:XX:XX:XX` |
+| `HealthScoreValue` | 0–100 |
+| `MacAddress` | Format `XX:XX:XX:XX:XX:XX` |
 | `IPAddressValue` | IPv4 string |
 
-#### Reglas de diagnóstico (Rules/)
+#### Diagnostic Rules (`Domain/Rules/`)
 
-Interfaz: `IDiagnosticRule.Evaluate(WirelessSnapshot) → DiagnosticResult?`
+Interface: `IDiagnosticRule.Evaluate(WirelessSnapshot) → DiagnosticResult?`
 
-| Regla | Código | Umbral | Severidad |
+| Rule | Code | Threshold | Severity |
 |---|---|---|---|
 | `LowRSSIRule` | `LOW_RSSI` | RSSI < -75 dBm | Warning / Critical (<-85) |
 | `HighPacketLossRule` | `HIGH_PACKET_LOSS` | > 5% | Warning / Critical (>15%) |
@@ -107,107 +108,112 @@ Interfaz: `IDiagnosticRule.Evaluate(WirelessSnapshot) → DiagnosticResult?`
 
 ### NetLens.Application
 
-Únicamente interfaces (contratos) y servicios de aplicación simples.
+Contains only interfaces (contracts) and simple application services.
 
-| Interface | Responsabilidad |
+| Interface | Responsibility |
 |---|---|
-| `IEventBus` | Pub/Sub desacoplado. `PublishAsync<T>()` / `Subscribe<T>()` / `Unsubscribe<T>()` |
+| `IEventBus` | Pub/Sub decoupling. `PublishAsync<T>()` / `Subscribe<T>()` / `Unsubscribe<T>()` |
 | `ITelemetryCollector` | `CaptureSnapshotAsync()` → `WirelessSnapshot?` |
 | `ISessionRepository` | `SaveSessionAsync()`, `GetRecentSessionsAsync()`, `GetSessionByIdAsync()` |
 | `IReportGenerator` | `GeneratePdfReport(DiagnosticSession)` → `byte[]` |
 | `IRuleEngine` | `Evaluate(WirelessSnapshot)` → `IReadOnlyList<DiagnosticResult>` |
-| `IPacketCapture` | `StartCapture()` / `StopCapture()` — actualmente NullObject |
+| `IPacketCapture` | `StartCapture()` / `StopCapture()` — currently NullObject |
 
-**Servicios en Application:**
-- `EventBus`: Implementación Singleton con diccionario de handlers por tipo de evento. Thread-safe.
-- `RuleEngine`: Ejecuta todas las `IDiagnosticRule` registradas contra un snapshot.
-- `CorrelationEngine` (stub en Application, implementación en Services).
+**Services in Application:**
+- `EventBus`: Singleton implementation with `ConcurrentDictionary<Type, List<Delegate>>` of handlers per event type. Thread-safe.
+- `RuleEngine`: Runs all registered `IDiagnosticRule` instances against a snapshot.
+- `CorrelationEngine` (stub in Application — real implementation is in `NetLens.Services`).
 
 ---
 
 ### NetLens.Network
 
-Implementaciones de red que dependen de APIs del sistema operativo Windows.
+Network implementations that depend on Windows OS APIs.
 
 #### WiFi (`Wifi/`)
-- **`WlanApi.cs`**: P/Invoke directo contra `wlanapi.dll`. Expone `WlanOpenHandle`, `WlanEnumInterfaces`, `WlanQueryInterface`, `WlanFreeMemory`. Mapea structs nativos (`WLAN_CONNECTION_ATTRIBUTES`, `WLAN_INTERFACE_INFO_LIST`, etc.)
-- **`WifiTelemetryCollector.cs`**: Implementa `ITelemetryCollector`. Combina WlanAPI + IP Helper API + PingService para construir un `WirelessSnapshot` completo. Ejecuta 3 pings en paralelo (gateway, DNS, internet).
+- **`WlanApi.cs`**: Direct P/Invoke against `wlanapi.dll`. Exposes `WlanOpenHandle`, `WlanEnumInterfaces`, `WlanQueryInterface`, `WlanFreeMemory`. Maps native structs (`WLAN_CONNECTION_ATTRIBUTES`, `WLAN_INTERFACE_INFO_LIST`, etc.)
+- **`WifiTelemetryCollector.cs`**: Implements `ITelemetryCollector`. Combines WlanAPI + IP Helper API + PingService to build a complete `WirelessSnapshot`. Runs 3 pings in parallel (gateway, DNS, internet).
 
 #### Adapters (`Adapters/`)
-- **`SystemMetricsCollector.cs`**: Lectura de CPU (PerformanceCounter) y RAM (GlobalMemoryStatusEx).
+- **`SystemMetricsCollector.cs`**: Reads CPU (PerformanceCounter) and RAM (GlobalMemoryStatusEx P/Invoke).
 
 #### Discovery (`Discovery/`)
-- **`SubnetScanner.cs`**: Escaneo de subred por rango CIDR, ping a cada host.
-- **`ArpResolver.cs`**: Resolución MAC vía tabla ARP del sistema (SendARP P/Invoke).
-- **`HostnameResolver.cs`**: Resolución DNS inversa de IPs descubiertas.
+- **`SubnetScanner.cs`**: Scans subnet by CIDR range, pinging each host.
+- **`ArpResolver.cs`**: Resolves MAC addresses via the system ARP table (SendARP P/Invoke).
+- **`HostnameResolver.cs`**: Reverse DNS resolution of discovered IPs.
 
 #### Diagnostics (`Diagnostics/`)
-- **`PingService.cs`**: Realiza N pings y devuelve `PingResult` con latencia promedio, jitter y packet loss.
-- **`TracerouteService.cs`**: Implementa traceroute manual con TTL incremental.
+- **`PingService.cs`**: Sends N pings and returns `PingResult` with average latency, jitter, and packet loss.
+- **`TracerouteService.cs`**: Implements manual traceroute with incremental TTL.
 
 #### PacketCapture (`PacketCapture/`)
-- **`NullPacketCapture.cs`**: Implementación vacía (NullObject pattern). Placeholder hasta integrar Npcap.
+- **`NullPacketCapture.cs`**: Empty implementation (NullObject pattern). Placeholder until Npcap is integrated.
 
 ---
 
 ### NetLens.Database
 
-Persistencia con **Entity Framework Core 9 + SQLite**.
+Persistence with **Entity Framework Core 9 + SQLite**.
 
-- **`NetLensDbContext`**: DbSets para `DiagnosticSessionRecord`, `WirelessSnapshotRecord`, `TimelineEventRecord`.
-- **Entidades de BD**: Separadas de las entidades de dominio. Usan `DateTime` (UTC) en lugar de `DateTimeOffset` por limitación de SQLite con ORDER BY.
+- **`NetLensDbContext`**: DbSets for `DiagnosticSessionRecord`, `WirelessSnapshotRecord`, `TimelineEventRecord`.
+- **DB Entities**: Separate from domain entities. Use `DateTime` (UTC) instead of `DateTimeOffset` due to SQLite's ORDER BY limitation.
 
-> ⚠️ Decisión técnica: El dominio usa `DateTimeOffset` internamente. El repositorio convierte a/desde `DateTime UTC` en la capa de persistencia. Ver `REPORTS/DateTimeOffset_to_DateTime_Migration_Report.md`.
+> ⚠️ **Technical decision**: The domain uses `DateTimeOffset` internally. The repository converts to/from `DateTime UTC` at the persistence boundary. See `REPORTS/DateTimeOffset_to_DateTime_Migration_Report.md`.
 
 ---
 
 ### NetLens.Infrastructure
 
-- **`SessionRepository.cs`**: Implementa `ISessionRepository`. Guarda y recupera `DiagnosticSession` desde SQLite, mapeando entre entidades de dominio y BD. Convierte `DateTimeOffset` ↔ `DateTime UTC` en lectura/escritura.
+- **`SessionRepository.cs`**: Implements `ISessionRepository`. Saves and retrieves `DiagnosticSession` from SQLite, mapping between domain and DB entities. Converts `DateTimeOffset` ↔ `DateTime UTC` on read/write.
 
 ---
 
 ### NetLens.Services
 
-Servicios de fondo que se ejecutan durante toda la vida de la aplicación.
+Long-running background services for the application's lifetime.
 
-- **`TelemetryBackgroundService`** (`BackgroundService`): Loop que captura un `WirelessSnapshot` cada **3 segundos**, lo registra en la `DiagnosticSession` activa y publica `TelemetryCollectedEvent` en el `IEventBus`.
-- **`CorrelationEngine`** (`BackgroundService + IEventHandler<TelemetryCollectedEvent>`): Mantiene ventana deslizante de 5 minutos de snapshots. Detecta:
-  - **Roaming Flap**: > 3 cambios de BSSID en 60 segundos
-  - **Gateway Failover**: Cambio de IP del gateway
+- **`TelemetryBackgroundService`** (`BackgroundService`): Loop that captures a `WirelessSnapshot` every **3 seconds**, records it in the active `DiagnosticSession`, and publishes `TelemetryCollectedEvent` on the `IEventBus`.
+- **`CorrelationEngine`** (`BackgroundService + IEventHandler<TelemetryCollectedEvent>`): Maintains a 5-minute sliding window of snapshots. Detects:
+  - **Roaming Flap**: > 3 BSSID changes in 60 seconds
+  - **Gateway Failover**: Change in gateway IP address
 
 ---
 
 ### NetLens.Reporting
 
-- **`DiagnosticReportGenerator`**: Implementa `IReportGenerator`. Genera PDF con **QuestPDF** (Community License). El reporte incluye: metadata de sesión, estado de red más reciente, tabla de eventos de timeline con evidencia.
+- **`DiagnosticReportGenerator`**: Implements `IReportGenerator`. Generates PDF using **QuestPDF** (Community License). Report includes: session metadata, most recent network status, timeline event table with evidence.
 
 ---
 
 ### NetLens.UI
 
-Capa de presentación **WinUI 3** con patrón **MVVM puro** usando CommunityToolkit.Mvvm.
+**WinUI 3** presentation layer with pure **MVVM** using CommunityToolkit.Mvvm.
 
-#### Vistas (Views/)
-| Vista | ViewModel | Descripción |
+#### Views (`Views/`)
+| View | ViewModel | Description |
 |---|---|---|
-| `DashboardPage` | `DashboardViewModel` | Métricas en tiempo real + 3 gráficas LiveCharts2 (RSSI, Latencia, Packet Loss) |
-| `WifiExplorerPage` | `WifiExplorerViewModel` | Info del AP conectado + tabla de redes vecinas |
-| `DiagnosticsPage` | `DiagnosticsViewModel` | Escaneo manual, Health Score, lista de alertas |
-| `DiscoveryPage` | `DiscoveryViewModel` | Escaneo de subred, tabla de dispositivos |
-| `HistoryPage` | `HistoryViewModel` | Listado de sesiones pasadas + exportación PDF |
+| `DashboardPage` | `DashboardViewModel` | Real-time metrics + 3 LiveCharts2 graphs (RSSI, Latency, Packet Loss) |
+| `WifiExplorerPage` | `WifiExplorerViewModel` | Connected AP info + neighboring networks table |
+| `DiagnosticsPage` | `DiagnosticsViewModel` | Manual scan, Health Score, alert list |
+| `DiscoveryPage` | `DiscoveryViewModel` | Subnet scan, device table |
+| `HistoryPage` | `HistoryViewModel` | Past sessions list + PDF export |
+| `SettingsPage` | `SettingsViewModel` | Language selector (English / Spanish) |
 
 #### ViewModels
-- Todos heredan `ObservableObject` (CommunityToolkit.Mvvm)
-- Los que reciben telemetría implementan `IEventHandler<TelemetryCollectedEvent>` y se suscriben al `IEventBus`
-- Actualizaciones de UI siempre se despachan al hilo principal via `DispatcherQueue.TryEnqueue()`
+- All inherit `ObservableObject` (CommunityToolkit.Mvvm)
+- Those receiving telemetry implement `IEventHandler<TelemetryCollectedEvent>` and subscribe to `IEventBus`
+- UI updates are always dispatched to the main thread via `DispatcherQueue.TryEnqueue()`
 
-#### Composición DI (`App.xaml.cs`)
-`App.xaml.cs` actúa como **Composition Root** usando `Microsoft.Extensions.Hosting`. Registra todos los servicios, inicia el Host y crea la ventana principal. La base de datos SQLite se inicializa via `EnsureDatabaseSchemaAsync()`: comprueba `PRAGMA user_version` y recrea el esquema automáticamente si la versión cambió (actualmente v2).
+#### UI-Layer Services (`Services/`)
+- **`SettingsService`**: Reads/writes `netlens.settings.json`. Persists user preferences (language).
+- **`LocalizationService`**: Loads `.resx` resource files at runtime; exposes `GetString(key)` for UI text. Language can be changed at runtime without restarting the app.
+
+#### DI Composition (`App.xaml.cs`)
+`App.xaml.cs` acts as the **Composition Root** using `Microsoft.Extensions.Hosting`. Registers all services, starts the Host, and creates the main window. SQLite DB is initialized via `EnsureDatabaseSchemaAsync()`: checks `PRAGMA user_version` and recreates the schema automatically if the version changed (currently v2).
 
 ---
 
-## Flujo de eventos
+## Event Flow
 
 ```
 TelemetryBackgroundService
@@ -215,17 +221,17 @@ TelemetryBackgroundService
     ├─ CaptureSnapshotAsync()  →  WifiTelemetryCollector
     │                               ├─ WlanAPI (RSSI, PHY Rate, SSID, BSSID)
     │                               ├─ IP Helper (Gateway, DNS, Local IP, MAC)
-    │                               ├─ PingService x3 (latencia, jitter, packet loss)
+    │                               ├─ PingService x3 (latency, jitter, packet loss)
     │                               └─ SystemMetrics (CPU, RAM)
     │
     └─ PublishAsync(TelemetryCollectedEvent)
             │
             ├─► DashboardViewModel.HandleAsync()
-            │       └─ RuleEngine.Evaluate() → alertas
-            │       └─ DispatcherQueue → UpdateFromSnapshot() + gráficas
+            │       └─ RuleEngine.Evaluate() → alerts
+            │       └─ DispatcherQueue → UpdateFromSnapshot() + charts
             │
             ├─► WifiExplorerViewModel.HandleAsync()
-            │       └─ Actualiza SSID/BSSID/RSSI/Channel
+            │       └─ Updates SSID/BSSID/RSSI/Channel
             │
             └─► CorrelationEngine.HandleAsync()
                     ├─ Roaming Flap → PublishAsync(CorrelationAlertEvent)
@@ -234,24 +240,25 @@ TelemetryBackgroundService
 
 ---
 
-## Patrones y decisiones de diseño notables
+## Design Patterns
 
-| Patrón | Dónde | Razón |
+| Pattern | Where | Why |
 |---|---|---|
-| **NullObject** | `NullPacketCapture` | Permite compilar/ejecutar sin Npcap; fácil swap futuro |
-| **Aggregate Root** | `DiagnosticSession` | Controla el ciclo de vida del ledger de snapshots |
-| **Value Objects inmutables** | Todo `Domain/Model/` | Seguridad de tipos, no primitivas expuestas |
-| **Event Bus Pub/Sub** | `EventBus` | Desacopla telemetría de UI; múltiples suscriptores sin dependencias directas |
-| **Composition Root** | `App.xaml.cs` | Un único lugar donde se alambra todo el DI container |
-| **MVVM con Source Generators** | ViewModels | `[ObservableProperty]` elimina boilerplate de `INotifyPropertyChanged` |
-| **Background Service loop** | `TelemetryBackgroundService` | Integración nativa con `IHostedService` y `CancellationToken` de shutdown |
+| **NullObject** | `NullPacketCapture` | Compile/run without Npcap; easy future swap |
+| **Aggregate Root** | `DiagnosticSession` | Controls the snapshot ledger lifecycle |
+| **Immutable Value Objects** | All `Domain/Model/` | Type safety, no primitive obsession |
+| **Event Bus Pub/Sub** | `EventBus` | Decouples telemetry from UI; multiple subscribers without direct dependencies |
+| **Composition Root** | `App.xaml.cs` | Single place where the entire DI container is wired |
+| **MVVM with Source Generators** | ViewModels | `[ObservableProperty]` eliminates `INotifyPropertyChanged` boilerplate |
+| **Background Service loop** | `TelemetryBackgroundService` | Native integration with `IHostedService` and shutdown `CancellationToken` |
 
 ---
 
-## Pendientes arquitecturales conocidos
+## Known Architectural Pending Items
 
-- [ ] `CorrelationEngine` en `NetLens.Application/Services/CorrelationEngine.cs` es un stub vacío; la implementación real vive en `NetLens.Services/`. Requiere limpieza/unificación.
-- [ ] `IPacketCapture` / `NullPacketCapture` — pendiente integrar Npcap (SharpPcap o PacketDotNet).
-- [ ] Las redes vecinas en `WifiExplorerViewModel` son datos simulados (`PopulateSurroundingNetworks()`); pendiente integrar scan real de BSS via WlanAPI.
-- [ ] El canal/frecuencia se derive de forma heurística basada en `dot11PhyType`; pendiente usar `wlan_intf_opcode_channel_number` para lectura exacta.
-- [ ] `tests/NetLens.Tests/` está vacío — pendiente pruebas unitarias.
+- [ ] `CorrelationEngine` in `NetLens.Application/Services/CorrelationEngine.cs` is an empty stub; the real implementation lives in `NetLens.Services/`. Needs cleanup/unification.
+- [ ] `IPacketCapture` / `NullPacketCapture` — pending Npcap integration (SharpPcap or PacketDotNet).
+- [ ] Neighboring networks in `WifiExplorerViewModel` are simulated data (`PopulateSurroundingNetworks()`); pending real BSS scan via WlanAPI (`WlanGetNetworkBssList`).
+- [ ] Channel/frequency are derived heuristically from `dot11PhyType`; pending use of `wlan_intf_opcode_channel_number` for exact values.
+- [ ] `tests/NetLens.Tests/` is empty — unit tests pending.
+- [ ] Localization currently covers the shell UI (sidebar, header, status texts). Full translation of all views requires extending resource keys and updating each page to listen for language-change events.

@@ -1,128 +1,148 @@
 # NetLens — Network Diagnostic Tool for Windows
 
-> **Visibilidad total de tu red WiFi, en tiempo real.**
-> Aplicación de escritorio Windows (WinUI 3 / .NET 10) para monitoreo continuo, diagnóstico y reporte de la calidad de la red inalámbrica.
+> **Real-time visibility of your WiFi network.**
+> Windows desktop application (WinUI 3 / .NET 10) for continuous monitoring, diagnostics, and reporting of wireless network quality.
 
 ---
 
-## ¿Qué es NetLens?
+## What is NetLens?
 
-NetLens es un **visor WiFi profesional para PC** diseñado para técnicos de redes e IT. Captura métricas de la conexión inalámbrica cada **3 segundos** mediante la Windows WLAN API, las analiza en tiempo real con un motor de reglas, y emite alertas y reportes PDF exportables.
+NetLens is a **professional WiFi viewer for PC** designed for network technicians and IT professionals. It captures wireless connection metrics every **3 seconds** via the Windows WLAN API, analyzes them in real time with a rule engine, and emits alerts and exportable PDF reports.
 
-El proyecto es un **prototipo funcional** en desarrollo activo, construido con arquitectura limpia (Clean Architecture) y DDD (Domain-Driven Design).
+The project is an **active-development functional prototype** built with Clean Architecture and DDD (Domain-Driven Design).
+
+### For AI Assistants
+
+If you are an AI reading this to understand or extend the codebase:
+- **Entry point**: `src/NetLens.UI/App.xaml.cs` — Composition Root (DI wiring, DB init, Host startup)
+- **Core data type**: `WirelessSnapshot` in `src/NetLens.Domain/Entities/WirelessSnapshot.cs` — the immutable telemetry frame captured every 3 seconds
+- **Main telemetry loop**: `src/NetLens.Services/TelemetryBackgroundService.cs` — captures snapshots and publishes `TelemetryCollectedEvent`
+- **Rule evaluation**: `src/NetLens.Application/Services/RuleEngine.cs` — runs all `IDiagnosticRule` implementations against each snapshot
+- **Architecture doc**: [`ARCHITECTURE.md`](./ARCHITECTURE.md) — full layer-by-layer breakdown, patterns, and known pending items
+- **Progress log**: [`PROGRESS.md`](./PROGRESS.md) — feature history and pending tasks
 
 ---
 
-## Características principales
+## Features
 
-| Módulo | Estado | Descripción |
+| Module | Status | Description |
 |---|---|---|
-| **Dashboard en tiempo real** | ✅ Funcional | RSSI, PHY Rate, Latencia, Jitter, Packet Loss, CPU/RAM |
-| **Motor de reglas diagnósticas** | ✅ Funcional | 5 reglas: LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
-| **Motor de correlación** | ✅ Funcional | Detección de Roaming Flap y Gateway Failover |
-| **Explorador WiFi** | ✅ Funcional | Vista del AP conectado + redes vecinas simuladas |
-| **Diagnóstico manual** | ✅ Funcional | Escaneo bajo demanda con Health Score |
-| **Descubrimiento de red** | ✅ Funcional | Escaneo de subred via ARP + resolución DNS |
-| **Historial de sesiones** | ✅ Funcional | SQLite / EF Core — últimas 50 sesiones |
-| **Exportación PDF** | ✅ Funcional | Reportes con QuestPDF (Community License) |
-| **Captura de paquetes** | 🚧 Pendiente | `NullPacketCapture` como stub; Npcap no integrado |
+| **Real-time Dashboard** | ✅ Working | RSSI, PHY Rate, Latency, Jitter, Packet Loss, CPU/RAM |
+| **Diagnostic Rule Engine** | ✅ Working | 5 rules: LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
+| **Correlation Engine** | ✅ Working | Roaming Flap and Gateway Failover detection |
+| **WiFi Explorer** | ✅ Working | Connected AP info + simulated neighboring networks |
+| **Manual Diagnostics** | ✅ Working | On-demand scan with Health Score |
+| **Network Discovery** | ✅ Working | ARP subnet scan + reverse DNS resolution |
+| **Session History** | ✅ Working | SQLite / EF Core — last 50 sessions |
+| **PDF Export** | ✅ Working | Reports with QuestPDF (Community License) |
+| **Language Selector** | ✅ Working | English / Spanish via .resx resources; persisted to `netlens.settings.json` |
+| **Packet Capture** | 🚧 Pending | `NullPacketCapture` stub; Npcap not yet integrated |
 
 ---
 
-## Stack tecnológico
+## Tech Stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | **UI / Framework** | WinUI 3 (Windows App SDK 1.6) |
-| **Lenguaje** | C# 13 / .NET 10 |
+| **Language** | C# 13 / .NET 10 |
 | **MVVM** | CommunityToolkit.Mvvm 8.3.2 |
-| **Gráficas** | LiveChartsCore.SkiaSharpView.WinUI 2.0.0-rc3 |
+| **Charts** | LiveChartsCore.SkiaSharpView.WinUI 2.0.0-rc3 |
 | **DI / Hosting** | Microsoft.Extensions.Hosting 9.0 |
-| **Base de datos** | SQLite + Entity Framework Core 9 |
+| **Database** | SQLite + Entity Framework Core 9 |
 | **PDF** | QuestPDF (Community License) |
-| **APIs de sistema** | WlanAPI (P/Invoke), IP Helper API, PerformanceCounter |
+| **System APIs** | WlanAPI (P/Invoke), IP Helper API, PerformanceCounter |
 
 ---
 
-## Requisitos del sistema
+## System Requirements
 
-- **OS**: Windows 10 1903 (build 19041) o superior
+- **OS**: Windows 10 1903 (build 19041) or later
 - **Runtime**: Windows App SDK 1.6 (self-contained)
-- **Arquitecturas**: x86, x64, ARM64
-- **Permisos**: Sin elevación de privilegios requerida para métricas WiFi; ARP scan puede requerir permisos de red
+- **Architectures**: x86, x64, ARM64
+- **Permissions**: No elevation required for WiFi metrics; ARP scan may require network permissions
 
 ---
 
-## Estructura del repositorio
+## Repository Structure
 
 ```
 VisorWifiForPc/
-├── NetLens.sln                     # Solución principal
-├── README.md                       # Este archivo
-├── ARCHITECTURE.md                 # Arquitectura detallada
-├── PROGRESS.md                     # Registro de avances
-├── REPORTS/                        # Informes técnicos de decisiones
+├── NetLens.sln                     # Solution file
+├── README.md                       # This file
+├── ARCHITECTURE.md                 # Detailed architecture reference
+├── PROGRESS.md                     # Development log and feature history
+├── REPORTS/                        # Technical decision reports
 │   └── DateTimeOffset_to_DateTime_Migration_Report.md
 ├── src/
-│   ├── NetLens.Domain/             # Núcleo del dominio (Entities, Value Objects, Rules)
-│   ├── NetLens.Application/        # Contratos de aplicación (Abstractions, Services)
-│   ├── NetLens.Network/            # Implementación de red (WiFi, Discovery, Diagnostics)
-│   ├── NetLens.Infrastructure/     # Repositorios (EF Core / SQLite)
-│   ├── NetLens.Database/           # DbContext y entidades de BD
-│   ├── NetLens.Services/           # Background Services (Telemetry, Correlation)
-│   ├── NetLens.Reporting/          # Generación de reportes PDF (QuestPDF)
-│   └── NetLens.UI/                 # Capa de presentación WinUI 3 (MVVM)
+│   ├── NetLens.Domain/             # Domain core: Entities, Value Objects, Rules
+│   ├── NetLens.Application/        # Contracts (interfaces) and lightweight services
+│   ├── NetLens.Network/            # Network adapters (WiFi, Discovery, Diagnostics)
+│   ├── NetLens.Infrastructure/     # Repositories (EF Core / SQLite)
+│   ├── NetLens.Database/           # DbContext and database entities
+│   ├── NetLens.Services/           # Background services (Telemetry, Correlation)
+│   ├── NetLens.Reporting/          # PDF report generation (QuestPDF)
+│   └── NetLens.UI/                 # WinUI 3 presentation layer (MVVM)
+│       ├── Resources/              # Localization .resx files (en/es)
+│       ├── Services/               # UI-layer services (SettingsService, LocalizationService)
+│       └── Views/                  # Pages: Dashboard, WiFi Explorer, Diagnostics, Discovery, History, Settings
 └── tests/
-    └── NetLens.Tests/              # Pruebas unitarias (en desarrollo)
+    └── NetLens.Tests/              # Unit tests (pending — directory is empty)
 ```
 
 ---
 
-## Cómo compilar y ejecutar
+## Build & Run
 
 ```powershell
-# Restaurar dependencias
+# Restore dependencies
 dotnet restore NetLens.sln
 
-# Compilar en modo debug
+# Build in debug mode
 dotnet build NetLens.sln -c Debug
 
-# Ejecutar la aplicación UI
+# Run the UI application
 dotnet run --project src/NetLens.UI/NetLens.UI.csproj
 ```
 
-> **Nota**: La primera ejecución crea automáticamente la base de datos SQLite `netlens.db` en el directorio de ejecución. Si el esquema cambia, la BD se recrea automáticamente (versionado via `PRAGMA user_version`).
+> **Note**: First run automatically creates `netlens.db` in the execution directory. If the schema changes, the DB is recreated automatically (versioned via `PRAGMA user_version`, currently v2). Settings are persisted to `netlens.settings.json`.
 
 ---
 
-## Flujo de datos resumido
+## Data Flow Summary
 
 ```
 [WlanAPI / IP Helper / PingService]
-          ↓  cada 3 segundos
+          ↓  every 3 seconds
 [WifiTelemetryCollector] → WirelessSnapshot
           ↓
-[TelemetryBackgroundService] → publica TelemetryCollectedEvent
+[TelemetryBackgroundService] → publishes TelemetryCollectedEvent
           ↓                           ↓
 [CorrelationEngine]          [DashboardViewModel]
- (Roaming Flap,               (UI en tiempo real,
-  Gateway Failover)            gráficas LiveCharts2)
+ (Roaming Flap,               (real-time UI,
+  Gateway Failover)            LiveCharts2 graphs)
           ↓
-   [IEventBus] → otros suscriptores
+   [IEventBus] → other subscribers
 ```
 
 ---
 
-## Licencias de terceros
+## Third-Party Licenses
 
-| Librería | Licencia |
+| Library | License |
 |---|---|
 | CommunityToolkit.Mvvm | MIT |
 | LiveChartsCore | MIT |
-| QuestPDF | Community (gratis para individuos/PYMES) |
+| QuestPDF | Community (free for individuals/SMBs) |
 | Microsoft.WindowsAppSDK | MIT |
 | Entity Framework Core | Apache 2.0 |
 
 ---
 
-*Proyecto en estado de prototipo activo. Ver [PROGRESS.md](./PROGRESS.md) para el registro de avances y [ARCHITECTURE.md](./ARCHITECTURE.md) para los detalles de arquitectura.*
+## Localization
+
+NetLens includes a language selector in the Settings page. Currently available in **English** and **Spanish**. Language choice is persisted in `netlens.settings.json` in the execution directory. The localization system uses `.resx` resource files (`Resources.resx` for English, `Resources.es.resx` for Spanish) managed by `LocalizationService`.
+
+---
+
+*Active prototype. See [PROGRESS.md](./PROGRESS.md) for the development log and [ARCHITECTURE.md](./ARCHITECTURE.md) for architecture details.*

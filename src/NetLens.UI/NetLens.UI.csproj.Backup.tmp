@@ -15,7 +15,9 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <SelfContained>false</SelfContained>
   </PropertyGroup>
-
+  <ItemGroup>
+    <Page Remove="Views\SettingsPage.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
@@ -35,5 +37,9 @@
     <ProjectReference Include="..\NetLens.Database\NetLens.Database.csproj" />
   </ItemGroup>
 
-
+  <ItemGroup>
+    <None Update="Views\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
 </Project>

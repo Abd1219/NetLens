@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using NetLens.UI.Views;
 using Windows.Graphics;
 
@@ -19,14 +20,55 @@ public sealed partial class MainWindow : Window
         { "WifiExplorer", typeof(WifiExplorerPage) },
         { "Discovery", typeof(DiscoveryPage) },
         { "Diagnostics", typeof(DiagnosticsPage) },
-        { "History", typeof(HistoryPage) }
+        { "History", typeof(HistoryPage) },
+        { "Settings", typeof(SettingsPage) }
     };
 
     public MainWindow()
     {
         InitializeComponent();
         ConfigureWindow();
+        ApplyLocalization();
         NavigateTo("Dashboard");
+    }
+
+    private void ApplyLocalization()
+    {
+        try
+        {
+            var loc = App.Services.GetRequiredService<Services.LocalizationService>();
+            // Set window title
+            this.Title = loc.GetString("Title");
+
+            // Pane header
+            PaneHeaderTitle.Text = loc.GetString("PaneHeader_Title");
+            PaneHeaderSubtitle.Text = loc.GetString("PaneHeader_Subtitle");
+
+            // Menu items
+            NavItem_Dashboard.Content = loc.GetString("Menu_Dashboard");
+            ToolTipService.SetToolTip(NavItem_Dashboard, loc.GetString("ToolTip_Dashboard"));
+
+            NavItem_Wifi.Content = loc.GetString("Menu_Wifi");
+
+            NavItem_Discovery.Content = loc.GetString("Menu_Discovery");
+            ToolTipService.SetToolTip(NavItem_Discovery, loc.GetString("ToolTip_Discovery"));
+
+            NavItem_Diagnostics.Content = loc.GetString("Menu_Diagnostics");
+            ToolTipService.SetToolTip(NavItem_Diagnostics, loc.GetString("ToolTip_Diagnostics"));
+
+            NavItem_History.Content = loc.GetString("Menu_History");
+            ToolTipService.SetToolTip(NavItem_History, loc.GetString("ToolTip_History"));
+
+            StatusText.Text = loc.GetString("Status_Monitoring");
+
+            // Subscribe to future language changes
+            loc.LanguageChanged -= ApplyLocalization;
+            loc.LanguageChanged += ApplyLocalization;
+        }
+        catch
+        {
+            // ignore localization errors
+        }
     }
 
     private void ConfigureWindow()
@@ -46,7 +88,7 @@ public sealed partial class MainWindow : Window
     {
         if (args.IsSettingsSelected)
         {
-            // Navigate to Settings page (future v2.0)
+            NavigateTo("Settings");
             return;
         }
 

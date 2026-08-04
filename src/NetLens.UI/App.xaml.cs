@@ -95,7 +95,12 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddTransient<WifiExplorerPage>();
         services.AddTransient<DiscoveryPage>();
         services.AddTransient<DiagnosticsPage>();
+        services.AddTransient<Views.SettingsPage>();
         services.AddTransient<HistoryPage>();
+
+        // Settings & Localization
+        services.AddSingleton<Services.SettingsService>();
+        services.AddSingleton<Services.LocalizationService>();
 
         // ── UI — ViewModels ──────────────────────────────────
         services.AddSingleton<DashboardViewModel>();
@@ -135,6 +140,22 @@ public partial class App : Microsoft.UI.Xaml.Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         await Host.StartAsync();
+
+        // Initialize localization from persisted settings (if any)
+        try
+        {
+            var settings = Services.GetRequiredService<Services.SettingsService>();
+            var loc = Services.GetRequiredService<Services.LocalizationService>();
+            var lang = settings.GetLanguage();
+            if (!string.IsNullOrWhiteSpace(lang))
+            {
+                loc.SetLanguage(lang);
+            }
+        }
+        catch
+        {
+            // ignore if services not available
+        }
 
         // Ensure DB schema is current (recreates when version changes)
         using var scope = Services.CreateScope();
