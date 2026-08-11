@@ -108,10 +108,11 @@ public sealed partial class WifiNetworkItem : ObservableObject
 }
 
 // ── DIAGNOSTICS VIEWMODEL ───────────────────────────────────────────────
-public sealed partial class DiagnosticsViewModel : ObservableObject
+public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandler<DiagnosticCompletedEvent>
 {
     private readonly ITelemetryCollector _telemetryCollector;
-    private readonly IRuleEngine _ruleEngine;
+    private readonly IDiagnosticService _diagnosticService;
+    private readonly DispatcherQueue _dispatcher;
 
     [ObservableProperty] private bool _isRunning;
     [ObservableProperty] private string _statusMessage = "Ready to perform diagnostic scan.";
@@ -121,11 +122,23 @@ public sealed partial class DiagnosticsViewModel : ObservableObject
 
     public ICommand RunDiagnosticCommand { get; }
 
-    public DiagnosticsViewModel(ITelemetryCollector telemetryCollector, IRuleEngine ruleEngine)
+    public DiagnosticsViewModel(
+        ITelemetryCollector telemetryCollector,
+        IDiagnosticService diagnosticService,
+        IEventBus eventBus)
     {
         _telemetryCollector = telemetryCollector;
-        _ruleEngine = ruleEngine;
+        _diagnosticService = diagnosticService;
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
         RunDiagnosticCommand = new AsyncRelayCommand(RunDiagnosticAsync);
+
+        eventBus.Subscribe(this);
+    }
+
+    public Task HandleAsync(DiagnosticCompletedEvent @event, CancellationToken cancellationToken)
+    {
+        _dispatcher.TryEnqueue(() => DisplayResults(@event.Results));
+        return Task.CompletedTask;
     }
 
     private async Task RunDiagnosticAsync()
@@ -144,24 +157,9 @@ public sealed partial class DiagnosticsViewModel : ObservableObject
                 return;
             }
 
-            StatusMessage = "Analyzing telemetry rules...";
-            var alerts = _ruleEngine.Evaluate(snapshot);
-
-            int score = 100;
-            foreach (var alert in alerts)
-            {
-                score -= alert.Severity == DiagnosticSeverity.Critical ? 25 : 10;
-            }
-            HealthScore = Math.Max(0, score);
-
-            foreach (var alert in alerts)
-            {
-                Results.Add(alert);
-            }
-
-            StatusMessage = alerts.Count > 0 
-                ? $"Scan complete: {alerts.Count} issue(s) detected." 
-                : "Scan complete: All systems normal.";
+            StatusMessage = "Analyzing diagnostic engine rules...";
+            var alerts = _diagnosticService.AnalyzeSnapshot(snapshot);
+            DisplayResults(alerts);
         }
         catch (Exception ex)
         {
@@ -171,6 +169,28 @@ public sealed partial class DiagnosticsViewModel : ObservableObject
         {
             IsRunning = false;
         }
+    }
+
+    private void DisplayResults(IReadOnlyList<DiagnosticResult> alerts)
+    {
+        Results.Clear();
+        int score = 100;
+        foreach (var alert in alerts)
+        {
+            score -= alert.Severity switch
+            {
+                DiagnosticSeverity.Critical => 25,
+                DiagnosticSeverity.Warning  => 10,
+                DiagnosticSeverity.Info     => 2,
+                _                           => 0
+            };
+            Results.Add(alert);
+        }
+        HealthScore = Math.Max(0, score);
+
+        StatusMessage = alerts.Count > 0 
+            ? $"Scan complete: {alerts.Count} issue(s) detected." 
+            : "Scan complete: All systems normal.";
     }
 }
 

@@ -27,12 +27,13 @@ NetLens follows **Clean Architecture** with these layers (inner to outer):
 ┌─────────────────────────────────────────────────────────────┐
 │                      NetLens.UI (WinUI 3)                   │
 │  Views / ViewModels / Converters / Styles                   │
+│  (Consumes DiagnosticCompletedEvent; ZERO rule evaluation)  │
 └──────────────────────────┬──────────────────────────────────┘
                            │ depends on
 ┌──────────────────────────▼──────────────────────────────────┐
-│              NetLens.Application (Contracts)                │
-│  IEventBus / ITelemetryCollector / ISessionRepository /    │
-│  IReportGenerator / IRuleEngine / IPacketCapture           │
+│              NetLens.Application (Contracts & Services)      │
+│  IDiagnosticService (DiagnosticService) / IRuleEngine /      │
+│  IEventBus / ITelemetryCollector / ISessionRepository        │
 └──────┬──────────────┬────────────┬────────────┬────────────┘
        │              │            │            │
 ┌──────▼──────┐ ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
@@ -48,9 +49,11 @@ NetLens follows **Clean Architecture** with these layers (inner to outer):
 ┌─────────────────────────────────────────────────────────────▼──┐
 │                   NetLens.Domain                                │
 │  Entities: WirelessSnapshot, DiagnosticSession, TimelineEvent  │
-│  Value Objects: RSSI, PhyRate, Latency, Jitter, PacketLossRate │
-│  Rules: IDiagnosticRule + 5 implementations                    │
-│  Events: TelemetryCollectedEvent, CorrelationAlertEvent        │
+│  Value Objects: RSSI, PhyRate, Latency, Jitter, PacketLossRate, │
+│                DiagnosticConfidence (0–100, 5 levels),          │
+│                WifiBand, WifiConnectionState, WifiSecurityType │
+│  Rules: IDiagnosticRule (7 atomic) + ICorrelationRule (4)      │
+│  Events: TelemetryCollectedEvent, DiagnosticCompletedEvent     │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -73,7 +76,7 @@ The system's heart. **Zero external dependencies.**
 | `CapturedPacket` | Entity | Captured network packet (currently stub) |
 | `TracerouteHop` | Entity | Individual hop in a traceroute |
 
-#### Value Objects (`Domain/Model/`)
+#### Value Objects (`Domain/Model/` & `Domain/Rules/`)
 
 All are **immutable** with constructor validation:
 
@@ -89,40 +92,57 @@ All are **immutable** with constructor validation:
 | `PacketLossRate` | 0–100% |
 | `Bandwidth` | ≥ 0 Mbps |
 | `HealthScoreValue` | 0–100 |
+| `DiagnosticConfidence` | 0–100 (5 levels: Insufficient, Low, Medium, High, VeryHigh) |
+| `WifiBand` | Enum: `Band2_4GHz`, `Band5GHz`, `Band6GHz`, `Unknown` |
+| `WifiConnectionState` | Enum: `Connected`, `Disconnected`, `Associating`, `Authenticating`, etc. |
+| `WifiSecurityType` | Enum: `Open`, `Wep`, `WpaPersonal`, `Wpa2Personal`, `Wpa3Personal`, etc. |
 | `MacAddress` | Format `XX:XX:XX:XX:XX:XX` |
 | `IPAddressValue` | IPv4 string |
 
 #### Diagnostic Rules (`Domain/Rules/`)
 
 Interface: `IDiagnosticRule.Evaluate(WirelessSnapshot) → DiagnosticResult?`
+Correlation Interface: `ICorrelationRule.Evaluate(WirelessSnapshot, atomicResults) → DiagnosticResult?`
 
-| Rule | Code | Threshold | Severity |
+##### Atomic Rules (7)
+| Rule | Code | Category | Threshold / Condition | Severity |
+|---|---|---|---|---|
+| `LowRSSIRule` | `LOW_RSSI` | RF | RSSI ≤ -75 dBm | Warning / Critical (≤ -85) |
+| `HighPacketLossRule` | `HIGH_PACKET_LOSS` | Network | Packet loss ≥ 3% | Warning / Critical (≥ 10%) |
+| `GatewayLatencyRule` | `HIGH_GATEWAY_LATENCY` | Network | Gateway latency ≥ 20 ms | Warning / Critical (≥ 100ms / Timeout) |
+| `DnsLatencyRule` | `DNS_SLOW` | Connectivity | DNS latency ≥ 50 ms | Warning / Critical (≥ 200ms / Timeout) |
+| `HighJitterRule` | `HIGH_JITTER` | Network | Jitter ≥ 15 ms | Warning / Critical (≥ 50ms) |
+| `LowPhyRateRule` | `LOW_PHY_RATE` | RF | Band-aware rate minimums | Warning / Critical / Info (if low RSSI) |
+| `InternetLatencyRule` | `HIGH_INTERNET_LATENCY` | Connectivity | Internet latency ≥ 80 ms | Warning / Critical (≥ 200ms / Timeout) |
+
+##### Correlation Rules (4)
+| Rule | Code | Category | Condition |
 |---|---|---|---|
-| `LowRSSIRule` | `LOW_RSSI` | RSSI < -75 dBm | Warning / Critical (<-85) |
-| `HighPacketLossRule` | `HIGH_PACKET_LOSS` | > 5% | Warning / Critical (>15%) |
-| `GatewayLatencyRule` | `HIGH_GATEWAY_LATENCY` | > 100 ms | Warning / Critical (>300ms) |
-| `DnsLatencyRule` | `HIGH_DNS_LATENCY` | > 150 ms | Warning / Critical (>400ms) |
-| `HighJitterRule` | `HIGH_JITTER` | > 30 ms | Warning / Critical (>80ms) |
+| `SignalDegradationRule` | `SIGNAL_DEGRADATION` | Correlation | Low RSSI + Low PHY Rate + Packet Loss |
+| `PossibleInterferenceRule` | `POSSIBLE_INTERFERENCE` | Correlation | Adequate RSSI + Low PHY Rate + Jitter/Loss |
+| `ConnectivityPartialRule` | `CONNECTIVITY_PARTIAL` | Correlation | Gateway OK + DNS Timeout |
+| `ConnectivityFullLossRule` | `CONNECTIVITY_FULL_LOSS` | Correlation | Gateway Timeout + DNS Timeout |
 
 ---
 
 ### NetLens.Application
 
-Contains only interfaces (contracts) and simple application services.
+Contains contracts (interfaces) and core application orchestration services.
 
-| Interface | Responsibility |
+| Interface / Class | Responsibility |
 |---|---|
 | `IEventBus` | Pub/Sub decoupling. `PublishAsync<T>()` / `Subscribe<T>()` / `Unsubscribe<T>()` |
 | `ITelemetryCollector` | `CaptureSnapshotAsync()` → `WirelessSnapshot?` |
+| `IDiagnosticService` | `AnalyzeSnapshot(WirelessSnapshot)` → `IReadOnlyList<DiagnosticResult>` |
 | `ISessionRepository` | `SaveSessionAsync()`, `GetRecentSessionsAsync()`, `GetSessionByIdAsync()` |
 | `IReportGenerator` | `GeneratePdfReport(DiagnosticSession)` → `byte[]` |
 | `IRuleEngine` | `Evaluate(WirelessSnapshot)` → `IReadOnlyList<DiagnosticResult>` |
 | `IPacketCapture` | `StartCapture()` / `StopCapture()` — currently NullObject |
 
 **Services in Application:**
-- `EventBus`: Singleton implementation with `ConcurrentDictionary<Type, List<Delegate>>` of handlers per event type. Thread-safe.
-- `RuleEngine`: Runs all registered `IDiagnosticRule` instances against a snapshot.
-- `CorrelationEngine` (stub in Application — real implementation is in `NetLens.Services`).
+- `EventBus`: Thread-safe Singleton implementation with `ConcurrentDictionary<Type, List<Delegate>>`.
+- `RuleEngine`: Executes all registered `IDiagnosticRule` instances against a snapshot.
+- `DiagnosticService`: Core diagnostic engine that evaluates atomic rules, correlation rules, applies conflict suppression, and publishes `DiagnosticCompletedEvent`.
 
 ---
 

@@ -1,3 +1,5 @@
+using NetLens.Domain.Rules;
+
 namespace NetLens.Domain.Events;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace NetLens.Domain.Events;
 public sealed record CorrelationAlertEvent(
     string AlertType,
     string Description,
-    string Severity,
+    DiagnosticSeverity Severity,
     IReadOnlyDictionary<string, string> Evidence) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();

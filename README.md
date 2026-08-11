@@ -17,8 +17,8 @@ If you are an AI reading this to understand or extend the codebase:
 - **Entry point**: `src/NetLens.UI/App.xaml.cs` — Composition Root (DI wiring, DB init, Host startup)
 - **Core data type**: `WirelessSnapshot` in `src/NetLens.Domain/Entities/WirelessSnapshot.cs` — the immutable telemetry frame captured every 3 seconds
 - **Main telemetry loop**: `src/NetLens.Services/TelemetryBackgroundService.cs` — captures snapshots and publishes `TelemetryCollectedEvent`
-- **Rule evaluation**: `src/NetLens.Application/Services/RuleEngine.cs` — runs all `IDiagnosticRule` implementations against each snapshot
-- **Architecture doc**: [`ARCHITECTURE.md`](./ARCHITECTURE.md) — full layer-by-layer breakdown, patterns, and known pending items
+- **Diagnostic Engine**: `src/NetLens.Application/Services/DiagnosticService.cs` — orchestrates atomic rules (`IRuleEngine`), correlation rules (`ICorrelationRule`), conflict suppression, and publishes `DiagnosticCompletedEvent`
+- **Architecture doc**: [`ARCHITECTURE.md`](./ARCHITECTURE.md) — full layer-by-layer breakdown, patterns, and roadmap
 - **Progress log**: [`PROGRESS.md`](./PROGRESS.md) — feature history and pending tasks
 
 ---
@@ -27,17 +27,17 @@ If you are an AI reading this to understand or extend the codebase:
 
 | Module | Status | Description |
 |---|---|---|
-| **Real-time Dashboard** | ✅ Working | RSSI, PHY Rate, Latency, Jitter, Packet Loss, CPU/RAM |
-| **Diagnostic Rule Engine** | ✅ Working | 5 rules: LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
-| **Correlation Engine** | ✅ Working | Roaming Flap and Gateway Failover detection |
-| **WiFi Explorer** | ✅ Working | Connected AP info + real surrounding networks via `WlanGetNetworkBssList` |
-| **Manual Diagnostics** | ✅ Working | On-demand scan with Health Score |
+| **Real-time Dashboard** | ✅ Working | Real RSSI, PHY Rate, Latency, Jitter, Packet Loss, CPU/RAM, active alerts |
+| **Diagnostic Engine (v0.3)** | ✅ Working | 7 atomic rules + 4 correlation rules, conflict suppression, deterministic 0–100 confidence |
+| **Correlation Engine** | ✅ Working | Multi-metric correlations (Signal Degradation, Interference, Partial/Full Connectivity Loss) |
+| **WiFi Explorer** | ✅ Working | Connected AP info + real surrounding networks via `WlanGetNetworkBssList` (no mock fallbacks) |
+| **Manual Diagnostics** | ✅ Working | On-demand scan with Health Score driven by `DiagnosticService` |
 | **Network Discovery** | ✅ Working | ARP subnet scan + reverse DNS resolution |
 | **Session History** | ✅ Working | SQLite / EF Core — last 50 sessions |
 | **PDF Export** | ✅ Working | Reports with QuestPDF (Community License) |
 | **Language Selector** | ✅ Working | English / Spanish via .resx resources; persisted to `netlens.settings.json` |
-| **Unit Test Suite** | ✅ Working | 58 unit tests (`NetLens.Tests`) for Domain, Rules, EventBus, and WlanAPI channel math |
-| **Packet Capture** | 🚧 Pending | `NullPacketCapture` stub; Npcap not yet integrated |
+| **Unit Test Suite** | ✅ Working | 80 unit tests (`NetLens.Tests`) for Domain, Rules, EventBus, DiagnosticService, and WlanAPI |
+| **Packet Capture** | 🚧 Pending | Planned for v0.7; Npcap driver not yet integrated |
 
 ---
 
@@ -88,7 +88,7 @@ VisorWifiForPc/
 │       ├── Services/               # UI-layer services (SettingsService, LocalizationService)
 │       └── Views/                  # Pages: Dashboard, WiFi Explorer, Diagnostics, Discovery, History, Settings
 └── tests/
-    └── NetLens.Tests/              # Unit tests (pending — directory is empty)
+    └── NetLens.Tests/              # 80 passing unit tests for Domain, Rules, DiagnosticService, EventBus, WlanAPI
 ```
 
 ---

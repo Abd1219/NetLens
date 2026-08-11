@@ -59,16 +59,25 @@ public partial class App : Microsoft.UI.Xaml.Application
         // ── Infrastructure ──────────────────────────────────
         services.AddScoped<ISessionRepository, SessionRepository>();
 
-        // ── Domain Rules (all registered as IEnumerable<IDiagnosticRule>) ──
+        // ── Domain Rules (Atomic) ───────────────────────────
         services.AddTransient<IDiagnosticRule, LowRSSIRule>();
         services.AddTransient<IDiagnosticRule, HighPacketLossRule>();
         services.AddTransient<IDiagnosticRule, GatewayLatencyRule>();
         services.AddTransient<IDiagnosticRule, DnsLatencyRule>();
         services.AddTransient<IDiagnosticRule, HighJitterRule>();
+        services.AddTransient<IDiagnosticRule, LowPhyRateRule>();
+        services.AddTransient<IDiagnosticRule, InternetLatencyRule>();
 
-        // ── Application ─────────────────────────────────────
+        // ── Correlation Rules ──────────────────────────────
+        services.AddTransient<ICorrelationRule, SignalDegradationRule>();
+        services.AddTransient<ICorrelationRule, PossibleInterferenceRule>();
+        services.AddTransient<ICorrelationRule, ConnectivityPartialRule>();
+        services.AddTransient<ICorrelationRule, ConnectivityFullLossRule>();
+
+        // ── Application Services ────────────────────────────
         services.AddSingleton<IEventBus, EventBus>();
         services.AddSingleton<IRuleEngine, RuleEngine>();
+        services.AddSingleton<IDiagnosticService, DiagnosticService>();
 
         // ── Network ─────────────────────────────────────────
         services.AddSingleton<PingService>();

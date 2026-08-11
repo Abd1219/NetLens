@@ -81,7 +81,7 @@ public sealed class CorrelationEngine : BackgroundService, IEventHandler<Telemet
                 await _eventBus.PublishAsync(new CorrelationAlertEvent(
                     "RoamingFlap",
                     $"Device roamed between BSSIDs {bssidChanges} times in the last minute, indicating unstable wireless coverage.",
-                    "Warning",
+                    NetLens.Domain.Rules.DiagnosticSeverity.Warning,
                     evidence
                 ), cancellationToken).ConfigureAwait(false);
             }
@@ -104,7 +104,7 @@ public sealed class CorrelationEngine : BackgroundService, IEventHandler<Telemet
                 await _eventBus.PublishAsync(new CorrelationAlertEvent(
                     "GatewayFailover",
                     $"Local gateway changed from {previousGateway.Value} to {currentGateway.Value}.",
-                    "Critical",
+                    NetLens.Domain.Rules.DiagnosticSeverity.Critical,
                     evidence
                 ), cancellationToken).ConfigureAwait(false);
             }

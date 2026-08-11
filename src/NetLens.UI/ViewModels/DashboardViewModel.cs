@@ -16,21 +16,21 @@ namespace NetLens.UI.ViewModels;
 /// <summary>
 /// ViewModel for the main Dashboard. Subscribes to TelemetryCollectedEvent
 /// and RuleViolatedEvent via the IEventBus, updating observable properties
-/// that drive the WinUI 3 bindings in real-time.
+/// ViewModel for the main Dashboard. Subscribes to DiagnosticCompletedEvent
+/// via the IEventBus, updating observable properties that drive the WinUI 3 
+/// bindings in real-time.
 ///
 /// All updates are dispatched back to the UI thread via DispatcherQueue.
 /// No logic beyond presentation transformation lives here.
 /// </summary>
 public sealed partial class DashboardViewModel : ObservableObject,
-    IEventHandler<TelemetryCollectedEvent>
+    IEventHandler<DiagnosticCompletedEvent>
 {
-    private readonly IRuleEngine _ruleEngine;
     private readonly ILogger<DashboardViewModel> _logger;
     private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcher;
 
     private const int MaxChartPoints = 60; // 3 minutes at 3s intervals
 
-    // ── Signal & Rate ────────────────────────────────────────────────
     // ── Signal & Rate ────────────────────────────────────────────────
     [ObservableProperty] private string _rssi = "— dBm";
     [ObservableProperty] private string _signalQuality = "—%";
@@ -111,15 +111,13 @@ public sealed partial class DashboardViewModel : ObservableObject,
 
     public DashboardViewModel(
         IEventBus eventBus,
-        IRuleEngine ruleEngine,
         ILogger<DashboardViewModel> logger)
     {
-        _ruleEngine = ruleEngine;
         _logger = logger;
         _dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
-        // Subscribe to the telemetry stream via the Event Bus
-        eventBus.Subscribe<TelemetryCollectedEvent>(this);
+        // Subscribe to diagnostic results processed by DiagnosticService
+        eventBus.Subscribe<DiagnosticCompletedEvent>(this);
 
         // Initialize chart series
         RssiSeries =
@@ -169,13 +167,14 @@ public sealed partial class DashboardViewModel : ObservableObject,
     }
 
     /// <summary>
-    /// Handles incoming TelemetryCollectedEvent. Updates all observable properties
-    /// and triggers rule evaluation. Called from background thread — must dispatch to UI.
+    /// Handles incoming DiagnosticCompletedEvent. Updates all observable telemetry metrics
+    /// and active diagnostic alerts on the UI thread.
+    /// ZERO rule evaluation happens here.
     /// </summary>
-    public Task HandleAsync(TelemetryCollectedEvent @event, CancellationToken cancellationToken)
+    public Task HandleAsync(DiagnosticCompletedEvent @event, CancellationToken cancellationToken)
     {
         var snapshot = @event.Snapshot;
-        var alerts = _ruleEngine.Evaluate(snapshot);
+        var alerts = @event.Results;
 
         _dispatcher.TryEnqueue(() => UpdateFromSnapshot(snapshot, alerts));
 

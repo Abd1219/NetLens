@@ -10,38 +10,83 @@
 
 ## Current Project State
 
-**Version**: v0.7 (Active prototype)
-**Phase**: Active development
-**Last updated**: 2026-08-11 (WlanAPI BSS scan + exact channels + unit tests)
+**Version**: v0.3 (Diagnostic Engine)
+**Phase**: Active incremental roadmap
+**Last updated**: 2026-08-11 (v0.3 Diagnostic Engine complete — deterministic rules, correlation, conflict suppression, confidence)
 
 ### Component Summary
 
 | Component | Status | Notes |
 |---|---|---|
-| Domain (Entities + Value Objects) | ✅ Complete | Immutable, constructor validation |
-| Rule Engine (5 rules) | ✅ Complete | LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
-| Correlation Engine | ✅ Complete | Roaming Flap + Gateway Failover |
-| WlanAPI (P/Invoke) | ✅ Complete | RSSI, PHY Rate, SSID, BSSID, PHY Type, BSS list |
+| Domain (Entities + Value Objects) | ✅ Complete | Immutable, constructor validation, typed enums/VOs |
+| Rule Engine (7 atomic rules) | ✅ Complete | LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter, LowPhyRate, InternetLatency |
+| Correlation Rules (4 composite rules) | ✅ Complete | SignalDegradation, PossibleInterference, ConnectivityPartial, ConnectivityFullLoss |
+| Diagnostic Engine (DiagnosticService) | ✅ Complete | Atomic -> Correlation -> Conflict Suppression -> Confidence -> Event publication |
+| DiagnosticConfidence | ✅ Complete | Deterministic 0–100 Value Object with 5 levels |
+| DiagnosticSeverity | ✅ Complete | Strongly typed enum (Good, Info, Warning, Critical) |
+| WlanAPI (P/Invoke) | ✅ Complete | RSSI, PHY Rate, SSID, BSSID, PHY Type, BSS list (v0.2) |
 | Combined telemetry | ✅ Complete | WiFi + IP Helper + PingService + SystemMetrics |
 | Background Services | ✅ Complete | TelemetryBackgroundService + CorrelationEngine |
 | Event Bus | ✅ Complete | Decoupled Pub/Sub, thread-safe |
-| Dashboard UI | ✅ Complete | LiveCharts2 graphs, real-time metrics |
-| WiFi Explorer UI | ✅ Complete | Real surrounding networks via `WlanGetNetworkBssList` (with simulated fallback) |
-| Manual Diagnostics | ✅ Complete | Health Score calculated |
-| Network Discovery | ✅ Complete | ARP + reverse DNS |
-| Session History | ✅ Complete | SQLite, last 50 sessions; DateTimeOffset ORDER BY fix applied |
+| Dashboard UI | ✅ Complete | Subscribes to DiagnosticCompletedEvent; ZERO rule evaluation in UI |
+| Diagnostics UI | ✅ Complete | Subscribes to DiagnosticCompletedEvent via DiagnosticService |
+| WiFi Explorer UI | ✅ Complete | Real surrounding networks via `WlanGetNetworkBssList` (no fallback mocks) |
+| Session History | ✅ Complete | SQLite, last 50 sessions |
 | PDF Export | ✅ Complete | QuestPDF, Community License |
-| Localization (en/es) | ✅ Complete | Shell UI localized; full view translation pending |
-| Settings page | ✅ Complete | Language selector, persisted to `netlens.settings.json` |
-| Exact channel/frequency | ✅ Complete | Exact center frequency lookup in kHz converted to 2.4/5/6 GHz channels |
-| Unit tests | ✅ Complete | 58 unit tests passing (`NetLens.Tests`) |
-| Packet capture | ❌ Pending | NullPacketCapture stub |
+| Unit tests | ✅ Complete | 80 unit tests passing (`NetLens.Tests`) |
+| Packet capture | ❌ Pending | Out of scope for v0.3 (planned for v0.7) |
 
 ---
 
 ## Change History
 
-### [2026-08-11] — Real WlanAPI BSS List, Exact Channels & Unit Tests (v0.7)
+### [2026-08-11] — v0.3 Diagnostic Engine Implementation
+
+**Type**: Feature & Architectural Refactoring
+**Who**: Antigravity AI Assistant
+
+**What was done:**
+- Extended `DiagnosticResult` record with `DiagnosticId` (Guid), `Category` (`DiagnosticCategory`), `Title`, `Confidence` (`DiagnosticConfidence`), `Timestamp`, and renamed fields for clean explainability.
+- Updated `DiagnosticSeverity` enum to include `Good` (`Good < Info < Warning < Critical`).
+- Created `DiagnosticConfidence` Value Object (0–100) with deterministic level mapping (`Insufficient`, `Low`, `Medium`, `High`, `VeryHigh`).
+- Created `EvidenceKeys` constants to eliminate magic string literals across rules.
+- Implemented context-aware `LowPhyRateRule` (evaluates band, RSSI, and PHY type to eliminate false positives).
+- Implemented `InternetLatencyRule` (distinguishes local vs. ISP latency congestion).
+- Created `ICorrelationRule` interface and implemented 4 correlation rules: `SignalDegradationRule`, `PossibleInterferenceRule`, `ConnectivityPartialRule`, `ConnectivityFullLossRule`.
+- Created `DiagnosticService` in Application layer to orchestrate atomic rules, correlation rules, conflict suppression, and publish `DiagnosticCompletedEvent`.
+- Decoupled `DashboardViewModel` and `DiagnosticsViewModel` from direct `IRuleEngine.Evaluate()` calls — UI now exclusively consumes `DiagnosticCompletedEvent`.
+- Updated `CorrelationAlertEvent` to use strongly typed `DiagnosticSeverity` enum.
+- Added comprehensive unit test suite in `DiagnosticEnginev03Tests.cs`, bringing passing test total from 63 to 80 (`80/80 passed, exit code 0`).
+
+**Files modified/created:**
+- `src/NetLens.Domain/Rules/DiagnosticResult.cs`
+- `src/NetLens.Domain/Rules/DiagnosticCategory.cs` (new)
+- `src/NetLens.Domain/Rules/DiagnosticConfidence.cs` (new)
+- `src/NetLens.Domain/Rules/EvidenceKeys.cs` (new)
+- `src/NetLens.Domain/Rules/ICorrelationRule.cs` (new)
+- `src/NetLens.Domain/Rules/LowRSSIRule.cs`
+- `src/NetLens.Domain/Rules/HighPacketLossRule.cs`
+- `src/NetLens.Domain/Rules/GatewayLatencyRule.cs`
+- `src/NetLens.Domain/Rules/DnsLatencyRule.cs`
+- `src/NetLens.Domain/Rules/HighJitterRule.cs`
+- `src/NetLens.Domain/Rules/LowPhyRateRule.cs` (new)
+- `src/NetLens.Domain/Rules/InternetLatencyRule.cs` (new)
+- `src/NetLens.Domain/Rules/SignalDegradationRule.cs` (new)
+- `src/NetLens.Domain/Rules/PossibleInterferenceRule.cs` (new)
+- `src/NetLens.Domain/Rules/ConnectivityPartialRule.cs` (new)
+- `src/NetLens.Domain/Rules/ConnectivityFullLossRule.cs` (new)
+- `src/NetLens.Domain/Events/DiagnosticCompletedEvent.cs` (new)
+- `src/NetLens.Domain/Events/CorrelationAlertEvent.cs`
+- `src/NetLens.Application/Abstractions/IDiagnosticService.cs` (new)
+- `src/NetLens.Application/Services/DiagnosticService.cs` (new)
+- `src/NetLens.Services/CorrelationEngine.cs`
+- `src/NetLens.UI/App.xaml.cs`
+- `src/NetLens.UI/ViewModels/DashboardViewModel.cs`
+- `src/NetLens.UI/ViewModels/OtherViewModels.cs`
+- `tests/NetLens.Tests/RuleEngineTests.cs`
+- `tests/NetLens.Tests/DiagnosticEnginev03Tests.cs` (new)
+
+---
 
 **Type**: Implementation & Technical Decision
 **Who**: Antigravity AI Assistant
