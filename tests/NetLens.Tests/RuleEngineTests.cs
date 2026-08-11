@@ -24,6 +24,7 @@ public class RuleEngineTests
         double jitterMs = 3)
     {
         var rssi = new RSSI(rssiDbm);
+        var band = WifiBandExtensions.FromFrequencyMhz(freqMhz);
         return new WirelessSnapshot(
             capturedAt: DateTimeOffset.UtcNow,
             rssi: rssi,
@@ -32,18 +33,26 @@ public class RuleEngineTests
             channel: new Channel(channel),
             frequency: new Frequency(freqMhz),
             signalQuality: SignalQuality.FromRssi(rssi),
+            band: band,
             ssid: "CorpNet",
             bssid: new MacAddress("AA:BB:CC:DD:EE:FF"),
             physicalType: "802.11ax (Wi-Fi 6)",
+            securityType: WifiSecurityType.Wpa2Personal,
+            connectionState: WifiConnectionState.Connected,
             gatewayLatency: gatewayTimeout ? Latency.Timeout : new Latency(gatewayMs),
             dnsLatency: dnsTimeout ? Latency.Timeout : new Latency(dnsMs),
             internetLatency: new Latency(internetMs),
             packetLoss: new PacketLossRate(packetLossPercent),
             jitter: new Jitter(jitterMs),
+            adapterName: "Intel AX201",
+            adapterManufacturer: "Unavailable",
+            adapterMac: new MacAddress("11:22:33:44:55:66"),
             localIp: new IPAddressValue("192.168.1.50"),
             gatewayIp: new IPAddressValue("192.168.1.1"),
             dnsIp: new IPAddressValue("8.8.8.8"),
-            adapterMac: new MacAddress("11:22:33:44:55:66"),
+            ipv6: null,
+            dhcpServer: "192.168.1.1",
+            linkSpeedMbps: txMbps,
             cpuUsagePercent: 10,
             ramUsagePercent: 45
         );

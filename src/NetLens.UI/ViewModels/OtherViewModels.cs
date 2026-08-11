@@ -20,6 +20,7 @@ namespace NetLens.UI.ViewModels;
 public sealed partial class WifiExplorerViewModel : ObservableObject, IEventHandler<TelemetryCollectedEvent>
 {
     private readonly IEventBus _eventBus;
+    private readonly ITelemetryCollector _telemetryCollector;
     private readonly DispatcherQueue _dispatcher;
 
     [ObservableProperty] private string _ssid = "Not Connected";
@@ -30,13 +31,41 @@ public sealed partial class WifiExplorerViewModel : ObservableObject, IEventHand
 
     public ObservableCollection<WifiNetworkItem> SurroundingNetworks { get; } = [];
 
-    public WifiExplorerViewModel(IEventBus eventBus)
+    public WifiExplorerViewModel(IEventBus eventBus, ITelemetryCollector telemetryCollector)
     {
         _eventBus = eventBus;
+        _telemetryCollector = telemetryCollector;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
         _eventBus.Subscribe<TelemetryCollectedEvent>(this);
 
-        PopulateSurroundingNetworks();
+        _ = RefreshSurroundingNetworksAsync();
+    }
+
+    public async Task RefreshSurroundingNetworksAsync()
+    {
+        try
+        {
+            var networks = await _telemetryCollector.GetSurroundingNetworksAsync(CancellationToken.None);
+            _dispatcher.TryEnqueue(() =>
+            {
+                SurroundingNetworks.Clear();
+                foreach (var net in networks)
+                {
+                    SurroundingNetworks.Add(new WifiNetworkItem(
+                        net.Ssid,
+                        net.Bssid,
+                        net.RssiDbm,
+                        net.Channel,
+                        net.Band.ToDisplayString(),
+                        net.Security.ToDisplayString(),
+                        net.PhysicalType));
+                }
+            });
+        }
+        catch
+        {
+            _dispatcher.TryEnqueue(() => SurroundingNetworks.Clear());
+        }
     }
 
     public Task HandleAsync(TelemetryCollectedEvent @event, CancellationToken cancellationToken)
@@ -49,25 +78,10 @@ public sealed partial class WifiExplorerViewModel : ObservableObject, IEventHand
             Rssi = s.Rssi.ToString();
             Channel = s.Channel.ToString();
             SignalQuality = s.SignalQuality.ToString();
-
-            // Simulate minor real-time RSSI variations for surrounding networks
-            var rand = new Random();
-            foreach (var net in SurroundingNetworks)
-            {
-                var delta = rand.Next(-2, 3);
-                net.Rssi = Math.Clamp(net.BaseRssi + delta, -95, -30);
-            }
         });
-        return Task.CompletedTask;
-    }
 
-    private void PopulateSurroundingNetworks()
-    {
-        SurroundingNetworks.Add(new WifiNetworkItem("Corporate-Secure", "00:11:22:33:44:55", -52, 6, "WPA3-Enterprise", "802.11ax (Wi-Fi 6)"));
-        SurroundingNetworks.Add(new WifiNetworkItem("Guest-WiFi", "00:11:22:33:44:66", -65, 11, "WPA2-Personal", "802.11n (Wi-Fi 4)"));
-        SurroundingNetworks.Add(new WifiNetworkItem("NetLens-Lab-5G", "AA:BB:CC:DD:EE:FF", -45, 36, "WPA3-Personal", "802.11ac (Wi-Fi 5)"));
-        SurroundingNetworks.Add(new WifiNetworkItem("Home-Network", "AA:BB:CC:DD:EE:11", -78, 149, "WPA2-Personal", "802.11ac (Wi-Fi 5)"));
-        SurroundingNetworks.Add(new WifiNetworkItem("Public-Hotspot", "55:44:33:22:11:00", -85, 1, "None (Open)", "802.11g"));
+        _ = RefreshSurroundingNetworksAsync();
+        return Task.CompletedTask;
     }
 }
 
@@ -75,20 +89,19 @@ public sealed partial class WifiNetworkItem : ObservableObject
 {
     public string Ssid { get; }
     public string Bssid { get; }
-    public int BaseRssi { get; }
+    public int Rssi { get; }
     public int Channel { get; }
+    public string Band { get; }
     public string Security { get; }
     public string Standards { get; }
 
-    [ObservableProperty] private int _rssi;
-
-    public WifiNetworkItem(string ssid, string bssid, int baseRssi, int channel, string security, string standards)
+    public WifiNetworkItem(string ssid, string bssid, int rssi, int channel, string band, string security, string standards)
     {
         Ssid = ssid;
         Bssid = bssid;
-        BaseRssi = baseRssi;
-        _rssi = baseRssi;
+        Rssi = rssi;
         Channel = channel;
+        Band = band;
         Security = security;
         Standards = standards;
     }

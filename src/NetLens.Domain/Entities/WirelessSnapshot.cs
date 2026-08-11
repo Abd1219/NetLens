@@ -3,8 +3,8 @@ namespace NetLens.Domain.Entities;
 using NetLens.Domain.Model;
 
 /// <summary>
-/// An immutable snapshot of the wireless connection state captured at a single point in time.
-/// This acts as the raw "frame" stored by the FlightRecordingLedger.
+/// An immutable snapshot of the wireless connection state and hardware adapter captured at a single point in time.
+/// Strictly typed domain entity for telemetry recording.
 /// </summary>
 public sealed record WirelessSnapshot
 {
@@ -17,11 +17,14 @@ public sealed record WirelessSnapshot
     public Channel Channel { get; }
     public Frequency Frequency { get; }
     public SignalQuality SignalQuality { get; }
+    public WifiBand Band { get; }
 
-    // Network identity
+    // Network identity & Security
     public string Ssid { get; }
     public MacAddress Bssid { get; }
-    public string PhysicalType { get; }  // e.g. "802.11ax", "802.11ac"
+    public string PhysicalType { get; }
+    public WifiSecurityType SecurityType { get; }
+    public WifiConnectionState ConnectionState { get; }
 
     // Active probe results
     public Latency GatewayLatency { get; }
@@ -30,13 +33,18 @@ public sealed record WirelessSnapshot
     public PacketLossRate PacketLoss { get; }
     public Jitter Jitter { get; }
 
-    // Network configuration
+    // Network adapter & IP configuration
+    public string AdapterName { get; }
+    public string AdapterManufacturer { get; }
+    public MacAddress AdapterMac { get; }
     public IPAddressValue LocalIp { get; }
     public IPAddressValue GatewayIp { get; }
     public IPAddressValue DnsIp { get; }
-    public MacAddress AdapterMac { get; }
+    public string? Ipv6 { get; }
+    public string? DhcpServer { get; }
+    public double? LinkSpeedMbps { get; }
 
-    // System
+    // System resource metrics
     public double CpuUsagePercent { get; }
     public double RamUsagePercent { get; }
 
@@ -48,18 +56,26 @@ public sealed record WirelessSnapshot
         Channel channel,
         Frequency frequency,
         SignalQuality signalQuality,
+        WifiBand band,
         string ssid,
         MacAddress bssid,
         string physicalType,
+        WifiSecurityType securityType,
+        WifiConnectionState connectionState,
         Latency gatewayLatency,
         Latency dnsLatency,
         Latency internetLatency,
         PacketLossRate packetLoss,
         Jitter jitter,
+        string adapterName,
+        string adapterManufacturer,
+        MacAddress adapterMac,
         IPAddressValue localIp,
         IPAddressValue gatewayIp,
         IPAddressValue dnsIp,
-        MacAddress adapterMac,
+        string? ipv6,
+        string? dhcpServer,
+        double? linkSpeedMbps,
         double cpuUsagePercent,
         double ramUsagePercent)
     {
@@ -70,18 +86,26 @@ public sealed record WirelessSnapshot
         Channel = channel;
         Frequency = frequency;
         SignalQuality = signalQuality;
+        Band = band;
         Ssid = ssid;
         Bssid = bssid;
         PhysicalType = physicalType;
+        SecurityType = securityType;
+        ConnectionState = connectionState;
         GatewayLatency = gatewayLatency;
         DnsLatency = dnsLatency;
         InternetLatency = internetLatency;
         PacketLoss = packetLoss;
         Jitter = jitter;
+        AdapterName = adapterName;
+        AdapterManufacturer = adapterManufacturer;
+        AdapterMac = adapterMac;
         LocalIp = localIp;
         GatewayIp = gatewayIp;
         DnsIp = dnsIp;
-        AdapterMac = adapterMac;
+        Ipv6 = ipv6;
+        DhcpServer = dhcpServer;
+        LinkSpeedMbps = linkSpeedMbps;
         CpuUsagePercent = cpuUsagePercent;
         RamUsagePercent = ramUsagePercent;
     }

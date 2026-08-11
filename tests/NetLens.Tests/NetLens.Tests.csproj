@@ -16,5 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\NetLens.Domain\NetLens.Domain.csproj" />
     <ProjectReference Include="..\..\src\NetLens.Application\NetLens.Application.csproj" />
+    <ProjectReference Include="..\..\src\NetLens.Network\NetLens.Network.csproj" />
+    <ProjectReference Include="..\..\src\NetLens.Services\NetLens.Services.csproj" />
   </ItemGroup>
 </Project>

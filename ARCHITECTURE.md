@@ -256,9 +256,9 @@ TelemetryBackgroundService
 
 ## Known Architectural Pending Items
 
-- [ ] `CorrelationEngine` in `NetLens.Application/Services/CorrelationEngine.cs` is an empty stub; the real implementation lives in `NetLens.Services/`. Needs cleanup/unification.
+- [x] `CorrelationEngine` in `NetLens.Application/Services/CorrelationEngine.cs` stub removed — real implementation clean in `NetLens.Services/`.
+- [x] Neighboring networks in `WifiExplorerViewModel` use real BSS scan via native WlanAPI (`WlanGetNetworkBssList`) with simulated fallback when unavailable.
+- [x] Channel/frequency are derived exactly via `WlanGetNetworkBssList` center frequencies in kHz converted to 2.4/5/6 GHz channels.
+- [x] `tests/NetLens.Tests/` contains 58 passing unit tests covering Domain, Rules, EventBus, and WlanAPI channel math.
 - [ ] `IPacketCapture` / `NullPacketCapture` — pending Npcap integration (SharpPcap or PacketDotNet).
-- [ ] Neighboring networks in `WifiExplorerViewModel` are simulated data (`PopulateSurroundingNetworks()`); pending real BSS scan via WlanAPI (`WlanGetNetworkBssList`).
-- [ ] Channel/frequency are derived heuristically from `dot11PhyType`; pending use of `wlan_intf_opcode_channel_number` for exact values.
-- [ ] `tests/NetLens.Tests/` is empty — unit tests pending.
 - [ ] Localization currently covers the shell UI (sidebar, header, status texts). Full translation of all views requires extending resource keys and updating each page to listen for language-change events.

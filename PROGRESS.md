@@ -10,9 +10,9 @@
 
 ## Current Project State
 
-**Version**: v0.6 (Active prototype)
+**Version**: v0.7 (Active prototype)
 **Phase**: Active development
-**Last updated**: 2026-08-04 (documentation + localization commit)
+**Last updated**: 2026-08-11 (WlanAPI BSS scan + exact channels + unit tests)
 
 ### Component Summary
 
@@ -21,26 +21,51 @@
 | Domain (Entities + Value Objects) | ✅ Complete | Immutable, constructor validation |
 | Rule Engine (5 rules) | ✅ Complete | LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
 | Correlation Engine | ✅ Complete | Roaming Flap + Gateway Failover |
-| WlanAPI (P/Invoke) | ✅ Complete | RSSI, PHY Rate, SSID, BSSID, PHY Type |
+| WlanAPI (P/Invoke) | ✅ Complete | RSSI, PHY Rate, SSID, BSSID, PHY Type, BSS list |
 | Combined telemetry | ✅ Complete | WiFi + IP Helper + PingService + SystemMetrics |
 | Background Services | ✅ Complete | TelemetryBackgroundService + CorrelationEngine |
 | Event Bus | ✅ Complete | Decoupled Pub/Sub, thread-safe |
 | Dashboard UI | ✅ Complete | LiveCharts2 graphs, real-time metrics |
-| WiFi Explorer UI | ✅ Complete | Simulated neighboring networks |
+| WiFi Explorer UI | ✅ Complete | Real surrounding networks via `WlanGetNetworkBssList` (with simulated fallback) |
 | Manual Diagnostics | ✅ Complete | Health Score calculated |
 | Network Discovery | ✅ Complete | ARP + reverse DNS |
 | Session History | ✅ Complete | SQLite, last 50 sessions; DateTimeOffset ORDER BY fix applied |
 | PDF Export | ✅ Complete | QuestPDF, Community License |
 | Localization (en/es) | ✅ Complete | Shell UI localized; full view translation pending |
 | Settings page | ✅ Complete | Language selector, persisted to `netlens.settings.json` |
+| Exact channel/frequency | ✅ Complete | Exact center frequency lookup in kHz converted to 2.4/5/6 GHz channels |
+| Unit tests | ✅ Complete | 58 unit tests passing (`NetLens.Tests`) |
 | Packet capture | ❌ Pending | NullPacketCapture stub |
-| Real neighboring networks | ❌ Pending | Currently simulated data |
-| Unit tests | ❌ Pending | `tests/` directory empty |
-| Exact channel/frequency | ⚠️ Partial | Heuristic from PHY type, not exact WlanAPI opcode |
 
 ---
 
 ## Change History
+
+### [2026-08-11] — Real WlanAPI BSS List, Exact Channels & Unit Tests (v0.7)
+
+**Type**: Implementation & Technical Decision
+**Who**: Antigravity AI Assistant
+
+**What was done:**
+- Extended `WlanApi.cs` with `WlanGetNetworkBssList`, native structures (`WLAN_BSS_LIST`, `WLAN_BSS_ENTRY`), and `CalculateChannelFromFrequencyMhz` conversion logic for 2.4, 5, and 6 GHz bands.
+- Updated `WifiTelemetryCollector.cs` to resolve exact channel & center frequency for current connected BSSID.
+- Added `GetSurroundingNetworksAsync` to `ITelemetryCollector` and implemented native Wi-Fi scanning in `WifiTelemetryCollector.cs`.
+- Refactored `WifiExplorerViewModel.cs` to replace hardcoded networks with real live Wi-Fi networks discovered in range (with graceful fallback).
+- Cleaned up redundant stub file `src/NetLens.Application/Services/CorrelationEngine.cs`.
+- Added unit test suite `WifiChannelTests.cs` bringing total passing test suite to 58 tests.
+- Updated `PROGRESS.md`, `README.md`, `ARCHITECTURE.md`, and generated `walkthrough.md`.
+
+**Files modified:**
+- `src/NetLens.Network/Wifi/WlanApi.cs`
+- `src/NetLens.Network/Wifi/WifiTelemetryCollector.cs`
+- `src/NetLens.Application/Abstractions/ITelemetryCollector.cs`
+- `src/NetLens.UI/ViewModels/OtherViewModels.cs`
+- `tests/NetLens.Tests/NetLens.Tests.csproj`
+- `tests/NetLens.Tests/WifiChannelTests.cs` (new)
+- `src/NetLens.Application/Services/CorrelationEngine.cs` (deleted)
+- `PROGRESS.md`, `README.md`, `ARCHITECTURE.md`
+
+---
 
 ### [2026-08-04] — Documentation refresh + GitHub push
 

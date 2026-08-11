@@ -1,5 +1,8 @@
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+
+[assembly: InternalsVisibleTo("NetLens.Tests")]
 
 namespace NetLens.Network.Wifi;
 
@@ -44,6 +47,16 @@ internal static class WlanApi
         ref IntPtr ppData,
         IntPtr pWlanOpcodeValueType);
 
+    [DllImport(WlanLib, SetLastError = true)]
+    internal static extern uint WlanGetNetworkBssList(
+        IntPtr hClientHandle,
+        ref Guid pInterfaceGuid,
+        IntPtr pDot11Ssid,
+        uint dot11BssType,
+        [MarshalAs(UnmanagedType.Bool)] bool bSecurityEnabled,
+        IntPtr pReserved,
+        out IntPtr ppWlanBssList);
+
     [DllImport(WlanLib)]
     internal static extern void WlanFreeMemory(IntPtr pMemory);
 
@@ -60,6 +73,7 @@ internal static class WlanApi
         wlan_intf_opcode_bss_type,
         wlan_intf_opcode_interface_state,
         wlan_intf_opcode_current_connection,
+        wlan_intf_opcode_channel_number = 8,
     }
 
     internal enum WLAN_INTERFACE_STATE
@@ -157,6 +171,43 @@ internal static class WlanApi
         public WLAN_SECURITY_ATTRIBUTES wlanSecurityAttributes;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WLAN_BSS_LIST
+    {
+        public uint dwTotalItems;
+        public uint dwNumberOfItems;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WLAN_BSS_ENTRY
+    {
+        public DOT11_SSID dot11Ssid;
+        public uint uPhyId;
+        public DOT11_MAC_ADDRESS dot11BssId;
+        public uint dot11BssType;
+        public uint dot11PhyType;
+        public int lRssi;
+        public uint uLinkQuality;
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool bInRegDomain;
+        public ushort usBeaconPeriod;
+        public ulong ullTimestamp;
+        public ulong ullHostTimestamp;
+        public ushort usCapabilityInformation;
+        public uint ulChCenterFrequency; // in kHz
+        public WLAN_RATE_SET wlanRateSet;
+        public uint ulIeOffset;
+        public uint ulIeSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WLAN_RATE_SET
+    {
+        public uint uRateSetLength;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 126)]
+        public ushort[] usRateSet;
+    }
+
     // dot11PhyType mapping
     internal static string GetPhysicalTypeName(uint phyType) => phyType switch
     {
@@ -169,4 +220,26 @@ internal static class WlanApi
         8 => "802.11be (Wi-Fi 7)",
         _ => $"Unknown ({phyType})"
     };
+
+    /// <summary>
+    /// Converts a channel center frequency in MHz to its standard 802.11 channel number.
+    /// </summary>
+    internal static int CalculateChannelFromFrequencyMhz(int freqMhz)
+    {
+        if (freqMhz == 2484) return 14;
+        if (freqMhz >= 2412 && freqMhz <= 2472)
+        {
+            return (freqMhz - 2407) / 5;
+        }
+        if (freqMhz >= 5180 && freqMhz <= 5885)
+        {
+            return (freqMhz - 5000) / 5;
+        }
+        if (freqMhz >= 5955 && freqMhz <= 7115)
+        {
+            return (freqMhz - 5950) / 5;
+        }
+        return 0;
+    }
 }
+

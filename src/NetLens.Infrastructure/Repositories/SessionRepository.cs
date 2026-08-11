@@ -120,6 +120,7 @@ public sealed class SessionRepository : ISessionRepository
         {
             var rssi = new RSSI(snapRecord.RssiDbm);
             var quality = SignalQuality.FromRssi(rssi);
+            var band = WifiBandExtensions.FromFrequencyMhz(snapRecord.FrequencyMhz);
 
             session.RecordSnapshot(new WirelessSnapshot(
                 ToDateTimeOffset(snapRecord.CapturedAt),
@@ -129,18 +130,26 @@ public sealed class SessionRepository : ISessionRepository
                 new Channel(snapRecord.Channel),
                 new Frequency(snapRecord.FrequencyMhz),
                 quality,
+                band,
                 snapRecord.Ssid ?? "",
                 new MacAddress(snapRecord.Bssid ?? "00:00:00:00:00:00"),
                 snapRecord.PhysicalType ?? "",
+                WifiSecurityType.Unknown,
+                WifiConnectionState.Connected,
                 new Latency(snapRecord.GatewayLatencyMs),
                 new Latency(snapRecord.DnsLatencyMs),
                 new Latency(snapRecord.InternetLatencyMs),
                 new PacketLossRate(snapRecord.PacketLossPercent),
                 new Jitter(snapRecord.JitterMs),
+                "Unavailable",
+                "Unavailable",
+                new MacAddress("00:00:00:00:00:00"),
                 new IPAddressValue(snapRecord.LocalIp ?? "0.0.0.0"),
                 new IPAddressValue(snapRecord.GatewayIp ?? "0.0.0.0"),
                 new IPAddressValue(snapRecord.DnsIp ?? "0.0.0.0"),
-                new MacAddress("00:00:00:00:00:00"),
+                null,
+                null,
+                null,
                 snapRecord.CpuUsagePercent,
                 snapRecord.RamUsagePercent
             ));

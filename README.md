@@ -30,12 +30,13 @@ If you are an AI reading this to understand or extend the codebase:
 | **Real-time Dashboard** | ✅ Working | RSSI, PHY Rate, Latency, Jitter, Packet Loss, CPU/RAM |
 | **Diagnostic Rule Engine** | ✅ Working | 5 rules: LowRSSI, HighPacketLoss, GatewayLatency, DnsLatency, HighJitter |
 | **Correlation Engine** | ✅ Working | Roaming Flap and Gateway Failover detection |
-| **WiFi Explorer** | ✅ Working | Connected AP info + simulated neighboring networks |
+| **WiFi Explorer** | ✅ Working | Connected AP info + real surrounding networks via `WlanGetNetworkBssList` |
 | **Manual Diagnostics** | ✅ Working | On-demand scan with Health Score |
 | **Network Discovery** | ✅ Working | ARP subnet scan + reverse DNS resolution |
 | **Session History** | ✅ Working | SQLite / EF Core — last 50 sessions |
 | **PDF Export** | ✅ Working | Reports with QuestPDF (Community License) |
 | **Language Selector** | ✅ Working | English / Spanish via .resx resources; persisted to `netlens.settings.json` |
+| **Unit Test Suite** | ✅ Working | 58 unit tests (`NetLens.Tests`) for Domain, Rules, EventBus, and WlanAPI channel math |
 | **Packet Capture** | 🚧 Pending | `NullPacketCapture` stub; Npcap not yet integrated |
 
 ---

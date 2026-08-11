@@ -31,6 +31,7 @@ public sealed partial class DashboardViewModel : ObservableObject,
     private const int MaxChartPoints = 60; // 3 minutes at 3s intervals
 
     // ── Signal & Rate ────────────────────────────────────────────────
+    // ── Signal & Rate ────────────────────────────────────────────────
     [ObservableProperty] private string _rssi = "— dBm";
     [ObservableProperty] private string _signalQuality = "—%";
     [ObservableProperty] private string _phyTxRate = "— Mbps";
@@ -40,8 +41,11 @@ public sealed partial class DashboardViewModel : ObservableObject,
     [ObservableProperty] private string _frequency = "—";
     [ObservableProperty] private string _ssid = "Not Connected";
     [ObservableProperty] private string _bssid = "—";
+    [ObservableProperty] private string _band = "—";
+    [ObservableProperty] private string _securityType = "—";
+    [ObservableProperty] private string _connectionState = "—";
 
-    // ── Connectivity ────────────────────────────────────────────────
+    // ── Connectivity & Adapter ────────────────────────────────────────
     [ObservableProperty] private string _gatewayLatency = "—";
     [ObservableProperty] private string _dnsLatency = "—";
     [ObservableProperty] private string _internetLatency = "—";
@@ -50,6 +54,11 @@ public sealed partial class DashboardViewModel : ObservableObject,
     [ObservableProperty] private string _localIp = "—";
     [ObservableProperty] private string _gatewayIp = "—";
     [ObservableProperty] private string _dnsIp = "—";
+    [ObservableProperty] private string _adapterName = "—";
+    [ObservableProperty] private string _adapterManufacturer = "Unavailable";
+    [ObservableProperty] private string _ipv6 = "—";
+    [ObservableProperty] private string _dhcpServer = "—";
+    [ObservableProperty] private string _linkSpeed = "—";
 
     // ── System ───────────────────────────────────────────────────────
     [ObservableProperty] private string _cpu = "—%";
@@ -175,7 +184,7 @@ public sealed partial class DashboardViewModel : ObservableObject,
 
     private void UpdateFromSnapshot(WirelessSnapshot s, IReadOnlyList<DiagnosticResult> alerts)
     {
-        // RF metrics
+        // RF & Connection metrics
         Rssi = s.Rssi.ToString();
         SignalQuality = s.SignalQuality.ToString();
         PhyTxRate = s.TxRate.ToString();
@@ -183,10 +192,13 @@ public sealed partial class DashboardViewModel : ObservableObject,
         PhysicalType = s.PhysicalType;
         Channel = s.Channel.ToString();
         Frequency = s.Frequency.ToString();
+        Band = s.Band.ToDisplayString();
+        SecurityType = s.SecurityType.ToDisplayString();
+        ConnectionState = s.ConnectionState.ToDisplayString();
         Ssid = s.Ssid;
         Bssid = s.Bssid.Value;
 
-        // Connectivity
+        // Connectivity & Adapter Details
         GatewayLatency = s.GatewayLatency.ToString();
         DnsLatency = s.DnsLatency.ToString();
         InternetLatency = s.InternetLatency.ToString();
@@ -195,13 +207,18 @@ public sealed partial class DashboardViewModel : ObservableObject,
         LocalIp = s.LocalIp.Value;
         GatewayIp = s.GatewayIp.Value;
         DnsIp = s.DnsIp.Value;
+        AdapterName = string.IsNullOrWhiteSpace(s.AdapterName) ? "Unavailable" : s.AdapterName;
+        AdapterManufacturer = s.AdapterManufacturer;
+        Ipv6 = s.Ipv6 ?? "N/A";
+        DhcpServer = s.DhcpServer ?? "N/A";
+        LinkSpeed = s.LinkSpeedMbps.HasValue ? $"{s.LinkSpeedMbps.Value:N0} Mbps" : "N/A";
 
         // System
         CpuValue = s.CpuUsagePercent;
         Cpu = $"{s.CpuUsagePercent:N1}%";
         RamValue = s.RamUsagePercent;
         Ram = $"{s.RamUsagePercent:N1}%";
-        IsConnected = true;
+        IsConnected = s.ConnectionState == WifiConnectionState.Connected;
 
         // Update charts (maintain rolling window)
         AddChartPoint(_rssiValues, s.Rssi.Value);
