@@ -21,11 +21,12 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Diagnostic History" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
-                    <TextBlock Text="Stored diagnostic records and PDF report exports" FontSize="14" Foreground="#888888"/>
+                    <TextBlock x:Name="TitleText" Text="Diagnostic History" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
+                    <TextBlock x:Name="SubtitleText" Text="Stored diagnostic records and PDF report exports" FontSize="14" Foreground="#888888"/>
                 </StackPanel>
 
-                <Button Grid.Column="1"
+                <Button x:Name="RefreshBtn"
+                        Grid.Column="1"
                         Content="Refresh History"
                         Command="{Binding LoadSessionsCommand}"
                         Style="{StaticResource DefaultButtonStyle}"
@@ -36,7 +37,7 @@
             <!-- Stored Sessions List -->
             <Border Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Flight Recorder Sessions" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                    <TextBlock x:Name="SessionsHeader" Text="Flight Recorder Sessions" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
 
                     <!-- Table Header -->
                     <Grid Padding="12,8" Background="#242424" CornerRadius="4">
@@ -48,12 +49,12 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Date / Time" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="1" Text="Client Name" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="2" Text="Site / Location" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="3" Text="Snapshots" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="4" Text="Events" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="5" Text="Action" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA" Width="100" TextAlignment="Center"/>
+                        <TextBlock x:Name="Col_DateTime" Grid.Column="0" Text="Date / Time" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_ClientName" Grid.Column="1" Text="Client Name" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Site" Grid.Column="2" Text="Site / Location" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Snapshots" Grid.Column="3" Text="Snapshots" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Events" Grid.Column="4" Text="Events" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Action" Grid.Column="5" Text="Action" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA" Width="100" TextAlignment="Center"/>
                     </Grid>
 
                     <!-- Items -->
@@ -71,13 +72,13 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="0" Text="{Binding StartedAt}" FontSize="13" Foreground="#E8E8E8" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ClientName}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding SiteName}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ClientName}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SiteName}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Column="3" Text="{Binding SnapshotCount}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="4" Text="{Binding EventCount}" FontSize="13" Foreground="#AAAAAA" VerticalAlignment="Center"/>
 
                                     <Button Grid.Column="5"
-                                            Content="Export PDF"
+                                            Content="{Binding Tag, ElementName=ExportBtnText, TargetNullValue='Export PDF'}"
                                             Width="100"
                                             Command="{Binding DataContext.ExportReportCommand, ElementName=PageRoot}"
                                             CommandParameter="{Binding}"
@@ -88,12 +89,14 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <TextBlock x:Name="ExportBtnText" Visibility="Collapsed"/>
+
                     <!-- Empty state -->
                     <StackPanel
                         Visibility="{Binding Sessions.Count, Converter={StaticResource ZeroToVisibleConverter}}"
                         HorizontalAlignment="Center" Spacing="8" Padding="0,48">
                         <TextBlock Text="ℹ" FontSize="36" Foreground="#0078D4" HorizontalAlignment="Center"/>
-                        <TextBlock Text="No stored diagnostic sessions found." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="NoSessionsText" Text="No stored diagnostic sessions found." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

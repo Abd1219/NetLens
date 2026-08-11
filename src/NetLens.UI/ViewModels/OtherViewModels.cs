@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using NetLens.Application.Abstractions;
 using NetLens.Domain.Entities;
 using NetLens.Domain.Events;
 using NetLens.Domain.Model;
 using NetLens.Domain.Rules;
+using NetLens.UI.Models;
+using NetLens.UI.Services;
 
 namespace NetLens.UI.ViewModels;
 
@@ -112,13 +115,16 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
 {
     private readonly ITelemetryCollector _telemetryCollector;
     private readonly IDiagnosticService _diagnosticService;
+    private readonly LocalizationService _loc;
     private readonly DispatcherQueue _dispatcher;
 
+    private IReadOnlyList<DiagnosticResult> _lastAlerts = [];
+
     [ObservableProperty] private bool _isRunning;
-    [ObservableProperty] private string _statusMessage = "Ready to perform diagnostic scan.";
+    [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private int _healthScore = 100;
     
-    public ObservableCollection<DiagnosticResult> Results { get; } = [];
+    public ObservableCollection<DiagnosticResultDisplay> Results { get; } = [];
 
     public ICommand RunDiagnosticCommand { get; }
 
@@ -129,10 +135,19 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
     {
         _telemetryCollector = telemetryCollector;
         _diagnosticService = diagnosticService;
+        _loc = App.Services.GetRequiredService<LocalizationService>();
         _dispatcher = DispatcherQueue.GetForCurrentThread();
         RunDiagnosticCommand = new AsyncRelayCommand(RunDiagnosticAsync);
 
+        _statusMessage = _loc.GetString("Diagnostics_Ready");
+        _loc.LanguageChanged += OnLanguageChanged;
+
         eventBus.Subscribe(this);
+    }
+
+    private void OnLanguageChanged()
+    {
+        _dispatcher.TryEnqueue(() => UpdateStatusMessage(_lastAlerts));
     }
 
     public Task HandleAsync(DiagnosticCompletedEvent @event, CancellationToken cancellationToken)
@@ -144,7 +159,7 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
     private async Task RunDiagnosticAsync()
     {
         IsRunning = true;
-        StatusMessage = "Capturing network interface snapshots...";
+        StatusMessage = _loc.GetString("Diagnostics_Capturing");
         Results.Clear();
 
         try
@@ -152,18 +167,18 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
             var snapshot = await _telemetryCollector.CaptureSnapshotAsync(CancellationToken.None);
             if (snapshot == null)
             {
-                StatusMessage = "Error: Wireless adapter is not connected or metrics are unavailable.";
+                StatusMessage = _loc.GetString("Diagnostics_AdapterError");
                 HealthScore = 0;
                 return;
             }
 
-            StatusMessage = "Analyzing diagnostic engine rules...";
+            StatusMessage = _loc.GetString("Diagnostics_Analyzing");
             var alerts = _diagnosticService.AnalyzeSnapshot(snapshot);
             DisplayResults(alerts);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Diagnostic failed: {ex.Message}";
+            StatusMessage = string.Format(_loc.GetString("Diagnostics_Failed"), ex.Message);
         }
         finally
         {
@@ -173,6 +188,7 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
 
     private void DisplayResults(IReadOnlyList<DiagnosticResult> alerts)
     {
+        _lastAlerts = alerts;
         Results.Clear();
         int score = 100;
         foreach (var alert in alerts)
@@ -184,13 +200,20 @@ public sealed partial class DiagnosticsViewModel : ObservableObject, IEventHandl
                 DiagnosticSeverity.Info     => 2,
                 _                           => 0
             };
-            Results.Add(alert);
+            Results.Add(new DiagnosticResultDisplay(alert, _loc));
         }
         HealthScore = Math.Max(0, score);
 
+        UpdateStatusMessage(alerts);
+    }
+
+    private void UpdateStatusMessage(IReadOnlyList<DiagnosticResult> alerts)
+    {
+        if (IsRunning) return;
+
         StatusMessage = alerts.Count > 0 
-            ? $"Scan complete: {alerts.Count} issue(s) detected." 
-            : "Scan complete: All systems normal.";
+            ? string.Format(_loc.GetString("Diagnostics_CompleteIssues"), alerts.Count)
+            : _loc.GetString("Diagnostics_CompleteNormal");
     }
 }
 

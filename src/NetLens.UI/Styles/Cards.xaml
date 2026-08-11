@@ -7,10 +7,10 @@
         <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="Padding" Value="16,14"/>
-        <Setter Property="Width" Value="160"/>
-        <Setter Property="Height" Value="90"/>
-        <Setter Property="Margin" Value="0,0,0,12"/>
+        <Setter Property="Padding" Value="14,12"/>
+        <Setter Property="MinWidth" Value="130"/>
+        <Setter Property="MinHeight" Value="85"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
     </Style>
 
     <Style x:Key="ChartCard" TargetType="Border">
@@ -18,7 +18,8 @@
         <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="Padding" Value="16,16,16,8"/>
+        <Setter Property="Padding" Value="16,14"/>
+        <Setter Property="MinHeight" Value="200"/>
     </Style>
 
 </ResourceDictionary>

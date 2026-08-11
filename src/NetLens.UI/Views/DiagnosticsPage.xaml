@@ -13,26 +13,62 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Padding="24,20" Spacing="24">
 
+            <!-- Visual States for Responsive Layout -->
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="DiagnosticsLayoutGroup">
+                    <VisualState x:Name="WideState">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="750"/>
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="HealthCard.(Grid.Row)" Value="0"/>
+                            <Setter Target="HealthCard.(Grid.Column)" Value="0"/>
+                            <Setter Target="HealthCard.(Grid.ColumnSpan)" Value="1"/>
+
+                            <Setter Target="ViolationsCard.(Grid.Row)" Value="0"/>
+                            <Setter Target="ViolationsCard.(Grid.Column)" Value="1"/>
+                            <Setter Target="ViolationsCard.(Grid.ColumnSpan)" Value="1"/>
+                        </VisualState.Setters>
+                    </VisualState>
+
+                    <VisualState x:Name="NarrowState">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="0"/>
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="HealthCard.(Grid.Row)" Value="0"/>
+                            <Setter Target="HealthCard.(Grid.Column)" Value="0"/>
+                            <Setter Target="HealthCard.(Grid.ColumnSpan)" Value="2"/>
+
+                            <Setter Target="ViolationsCard.(Grid.Row)" Value="1"/>
+                            <Setter Target="ViolationsCard.(Grid.Column)" Value="0"/>
+                            <Setter Target="ViolationsCard.(Grid.ColumnSpan)" Value="2"/>
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+
             <!-- Title Header -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Diagnostics Engine" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
-                <TextBlock Text="Deterministic rule engine analysis of active interfaces" FontSize="14" Foreground="#888888"/>
+                <TextBlock x:Name="TitleText" Text="Diagnostics Engine" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
+                <TextBlock x:Name="SubtitleText" Text="Deterministic rule engine analysis of active interfaces" FontSize="14" Foreground="#888888"/>
             </StackPanel>
 
             <!-- Manual Controls & Status -->
             <Border Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1">
-                <Grid>
+                <Grid RowSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="Manual Diagnostic Scan" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                        <TextBlock x:Name="ManualScanText" Text="Manual Diagnostic Scan" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
                         <TextBlock Text="{Binding StatusMessage}" FontSize="13" Foreground="#AAAAAA" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1"
+                    <Button x:Name="RunScanBtn"
+                            Grid.Column="1"
                             Command="{Binding RunDiagnosticCommand}"
                             IsEnabled="{Binding IsRunning, Converter={StaticResource ZeroToVisibleConverter}}"
                             Content="Run Diagnostic Check"
@@ -43,25 +79,29 @@
             </Border>
 
             <!-- Diagnostic Results Panel -->
-            <Grid ColumnSpacing="20">
+            <Grid RowSpacing="16" ColumnSpacing="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Health Score Display -->
-                <Border Grid.Column="0" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" Height="200">
+                <Border x:Name="HealthCard" Grid.Row="0" Grid.Column="0" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" MinHeight="180">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                        <TextBlock Text="Health Score" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="HealthScoreLabel" Text="Health Score" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding HealthScore}" FontSize="64" FontWeight="Bold" Foreground="#0078D4" HorizontalAlignment="Center"/>
                         <TextBlock Text="/ 100" FontSize="14" Foreground="#666666" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Diagnostic Issues List -->
-                <Border Grid.Column="1" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" MinHeight="200">
+                <!-- Diagnostic Issues List (Active Rule Violations) -->
+                <Border x:Name="ViolationsCard" Grid.Row="0" Grid.Column="1" Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1" MinHeight="180">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Active Rule Violations" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                        <TextBlock x:Name="ActiveViolationsHeader" Text="Active Rule Violations" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
 
                         <ItemsControl ItemsSource="{Binding Results}">
                             <ItemsControl.ItemTemplate>
@@ -71,14 +111,20 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="4"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
                                             <Border Grid.Column="0" CornerRadius="2" Background="{Binding Severity, Converter={StaticResource SeverityToBrushConverter}}"/>
 
                                             <StackPanel Grid.Column="1" Spacing="4">
                                                 <TextBlock Text="{Binding Summary}" FontSize="13" Foreground="#E8E8E8" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                                <TextBlock Text="{Binding Recommendation}" FontSize="12" Foreground="#888888" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#AAAAAA" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Recommendation}" FontSize="11" Foreground="#888888" TextWrapping="Wrap"/>
                                             </StackPanel>
+
+                                            <Border Grid.Column="2" Background="#2B2B2B" CornerRadius="4" Padding="6,2" VerticalAlignment="Top">
+                                                <TextBlock Text="{Binding SeverityText}" FontSize="11" Foreground="#AAAAAA"/>
+                                            </Border>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -90,7 +136,7 @@
                             Visibility="{Binding Results.Count, Converter={StaticResource ZeroToVisibleConverter}}"
                             HorizontalAlignment="Center" Spacing="8" Padding="0,32">
                             <TextBlock Text="✓" FontSize="36" Foreground="#107C10" HorizontalAlignment="Center"/>
-                            <TextBlock Text="No active rule violations detected." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="NoViolationsText" Text="No active rule violations detected." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

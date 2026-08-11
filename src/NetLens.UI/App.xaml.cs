@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using NetLens.Application.Abstractions;
 using NetLens.Application.Services;
+using NetLens.Application.Correlation;
 using NetLens.Database;
 using NetLens.Domain.Rules;
 using NetLens.Infrastructure.Repositories;
@@ -78,6 +79,8 @@ public partial class App : Microsoft.UI.Xaml.Application
         services.AddSingleton<IEventBus, EventBus>();
         services.AddSingleton<IRuleEngine, RuleEngine>();
         services.AddSingleton<IDiagnosticService, DiagnosticService>();
+        services.AddSingleton<INetworkCorrelationEngine, NetworkCorrelationEngine>();
+        services.AddSingleton<INetworkMetricsWindowBuilder, NetworkMetricsWindowBuilder>();
 
         // ── Network ─────────────────────────────────────────
         services.AddSingleton<PingService>();

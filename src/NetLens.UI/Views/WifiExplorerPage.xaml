@@ -9,14 +9,14 @@
 
             <!-- Title Header -->
             <StackPanel Spacing="4">
-                <TextBlock Text="Wi-Fi Explorer" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
-                <TextBlock Text="Real-time scanning and RF environment analysis" FontSize="14" Foreground="#888888"/>
+                <TextBlock x:Name="TitleText" Text="Wi-Fi Explorer" FontSize="28" FontWeight="Bold" Foreground="#E8E8E8"/>
+                <TextBlock x:Name="SubtitleText" Text="Real-time scanning and RF environment analysis" FontSize="14" Foreground="#888888"/>
             </StackPanel>
 
             <!-- Current Connected AP Details -->
             <Border Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Active Association" FontSize="14" FontWeight="SemiBold" Foreground="#0078D4"/>
+                    <TextBlock x:Name="ActiveAssocText" Text="Active Association" FontSize="14" FontWeight="SemiBold" Foreground="#0078D4"/>
 
                     <Grid ColumnSpacing="20" RowSpacing="12">
                         <Grid.RowDefinitions>
@@ -33,25 +33,25 @@
                         <!-- SSID -->
                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                             <TextBlock Text="SSID" FontSize="11" Foreground="#666666"/>
-                            <TextBlock Text="{Binding Ssid}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                            <TextBlock Text="{Binding Ssid}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Ssid}"/>
                         </StackPanel>
 
                         <!-- BSSID -->
                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
                             <TextBlock Text="BSSID" FontSize="11" Foreground="#666666"/>
-                            <TextBlock Text="{Binding Bssid}" FontSize="14" FontFamily="Cascadia Code" Foreground="#AAAAAA"/>
+                            <TextBlock Text="{Binding Bssid}" FontSize="14" FontFamily="Cascadia Code" Foreground="#AAAAAA" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Bssid}"/>
                         </StackPanel>
 
                         <!-- Signal -->
                         <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
-                            <TextBlock Text="RSSI" FontSize="11" Foreground="#666666"/>
-                            <TextBlock Text="{Binding Rssi}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                            <TextBlock x:Name="Label_RSSI" Text="RSSI" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding Rssi}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
 
                         <!-- Channel -->
                         <StackPanel Grid.Row="0" Grid.Column="3" Spacing="4">
-                            <TextBlock Text="Channel" FontSize="11" Foreground="#666666"/>
-                            <TextBlock Text="{Binding Channel}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                            <TextBlock x:Name="Label_Channel" Text="Channel" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding Channel}" FontSize="15" FontWeight="SemiBold" Foreground="#E8E8E8" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -60,7 +60,7 @@
             <!-- Surrounding APs Table -->
             <Border Padding="18" CornerRadius="8" Background="#1C1C1C" BorderBrush="#2D2D2D" BorderThickness="1">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Detected Surrounding Access Points" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
+                    <TextBlock x:Name="SurroundingHeader" Text="Detected Surrounding Access Points" FontSize="14" FontWeight="SemiBold" Foreground="#E8E8E8"/>
 
                     <!-- Table Header -->
                     <Grid Padding="12,8" Background="#242424" CornerRadius="4">
@@ -74,10 +74,10 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="SSID" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
                         <TextBlock Grid.Column="1" Text="BSSID" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="2" Text="Signal" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="3" Text="Channel" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="4" Text="Security" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="5" Text="Standard" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Signal" Grid.Column="2" Text="Signal" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Channel" Grid.Column="3" Text="Channel" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Security" Grid.Column="4" Text="Security" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
+                        <TextBlock x:Name="Col_Standard" Grid.Column="5" Text="Standard" FontSize="12" FontWeight="SemiBold" Foreground="#AAAAAA"/>
                     </Grid>
 
                     <!-- Items -->
@@ -93,8 +93,8 @@
                                         <ColumnDefinition Width="2*"/>
                                         <ColumnDefinition Width="2*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Ssid}" FontSize="13" Foreground="#E8E8E8" FontWeight="SemiBold"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Bssid}" FontSize="12" FontFamily="Cascadia Code" Foreground="#888888" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding Ssid}" FontSize="13" Foreground="#E8E8E8" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Ssid}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Bssid}" FontSize="12" FontFamily="Cascadia Code" Foreground="#888888" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Bssid}"/>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Rssi}" FontSize="13" Foreground="#E8E8E8"/>
                                         <TextBlock Text="dBm" FontSize="11" Foreground="#666666" VerticalAlignment="Bottom"/>

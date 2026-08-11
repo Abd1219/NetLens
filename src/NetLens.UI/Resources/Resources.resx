@@ -1,69 +1,448 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
-	<value>text/microsoft-resx</value>
+    <value>text/microsoft-resx</value>
   </resheader>
   <resheader name="version">
-	<value>2.0</value>
+    <value>2.0</value>
   </resheader>
   <resheader name="reader">
-	<value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-	<value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Title" xml:space="preserve">
-	<value>NetLens — Network Diagnostic Platform</value>
+    <value>NetLens — Network Diagnostic Platform</value>
   </data>
   <data name="PaneHeader_Title" xml:space="preserve">
-	<value>NetLens</value>
+    <value>NetLens</value>
   </data>
   <data name="PaneHeader_Subtitle" xml:space="preserve">
-	<value>Network Diagnostic Platform</value>
+    <value>Network Diagnostic Platform</value>
   </data>
   <data name="Menu_Dashboard" xml:space="preserve">
-	<value>Dashboard</value>
+    <value>Dashboard</value>
   </data>
   <data name="Menu_Wifi" xml:space="preserve">
-	<value>WiFi</value>
+    <value>WiFi</value>
   </data>
   <data name="Menu_Discovery" xml:space="preserve">
-	<value>Discovery</value>
+    <value>Discovery</value>
   </data>
   <data name="Menu_Diagnostics" xml:space="preserve">
-	<value>Active Tests</value>
+    <value>Active Tests</value>
   </data>
   <data name="Menu_History" xml:space="preserve">
-	<value>Session History</value>
+    <value>Session History</value>
   </data>
   <data name="ToolTip_Dashboard" xml:space="preserve">
-	<value>Real-time network overview</value>
+    <value>Real-time network overview</value>
   </data>
   <data name="ToolTip_Discovery" xml:space="preserve">
-	<value>Scan local subnet and trace routes</value>
+    <value>Scan local subnet and trace routes</value>
   </data>
   <data name="ToolTip_Diagnostics" xml:space="preserve">
-	<value>Run ping, traceroute, DNS and bandwidth tests</value>
+    <value>Run ping, traceroute, DNS and bandwidth tests</value>
   </data>
   <data name="ToolTip_History" xml:space="preserve">
-	<value>Browse past diagnostic sessions</value>
+    <value>Browse past diagnostic sessions</value>
   </data>
   <data name="Status_Monitoring" xml:space="preserve">
-	<value>Monitoring</value>
+    <value>Monitoring</value>
   </data>
   <data name="Settings_Title" xml:space="preserve">
-	<value>Settings</value>
+    <value>Settings</value>
   </data>
   <data name="Settings_Language_Label" xml:space="preserve">
-	<value>Language</value>
+    <value>Language</value>
   </data>
   <data name="Settings_Language_English" xml:space="preserve">
-	<value>English</value>
+    <value>English</value>
   </data>
   <data name="Settings_Language_Spanish" xml:space="preserve">
-	<value>Spanish</value>
+    <value>Spanish</value>
   </data>
   <data name="Settings_Description" xml:space="preserve">
-	<value>Choose application language. Some screens may require restart to update all texts.</value>
+    <value>Choose application language.</value>
+  </data>
+  <data name="Card_RSSI" xml:space="preserve">
+    <value>RSSI</value>
+  </data>
+  <data name="Card_PhyRate" xml:space="preserve">
+    <value>PHY Rate</value>
+  </data>
+  <data name="Card_Gateway" xml:space="preserve">
+    <value>Gateway</value>
+  </data>
+  <data name="Card_PacketLoss" xml:space="preserve">
+    <value>Packet Loss</value>
+  </data>
+  <data name="Card_DNS" xml:space="preserve">
+    <value>DNS</value>
+  </data>
+  <data name="Card_Internet" xml:space="preserve">
+    <value>Internet</value>
+  </data>
+  <data name="Card_Channel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="Card_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Card_RoundTrip" xml:space="preserve">
+    <value>Round-trip</value>
+  </data>
+  <data name="Card_LocalIp" xml:space="preserve">
+    <value>Local IP</value>
+  </data>
+  <data name="Card_GatewayIp" xml:space="preserve">
+    <value>Gateway IP</value>
+  </data>
+  <data name="Card_DnsServer" xml:space="preserve">
+    <value>DNS Server</value>
+  </data>
+  <data name="Chart_RSSI" xml:space="preserve">
+    <value>Signal Strength (RSSI)</value>
+  </data>
+  <data name="Chart_GatewayLatency" xml:space="preserve">
+    <value>Gateway Latency</value>
+  </data>
+  <data name="Chart_PacketLoss" xml:space="preserve">
+    <value>Packet Loss</value>
+  </data>
+  <data name="ActiveDiagnostics_Title" xml:space="preserve">
+    <value>Active Diagnostics</value>
+  </data>
+  <data name="ActiveDiagnostics_NoIssues" xml:space="preserve">
+    <value>No active issues detected</value>
+  </data>
+  <data name="Status_AllNormal" xml:space="preserve">
+    <value>All Systems Normal</value>
+  </data>
+  <data name="Status_CriticalIssues" xml:space="preserve">
+    <value>{0} Critical Issue(s) Detected</value>
+  </data>
+  <data name="Status_Warnings" xml:space="preserve">
+    <value>{0} Warning(s)</value>
+  </data>
+  <data name="Diagnostics_Title" xml:space="preserve">
+    <value>Diagnostics Engine</value>
+  </data>
+  <data name="Diagnostics_Subtitle" xml:space="preserve">
+    <value>Deterministic rule engine analysis of active interfaces</value>
+  </data>
+  <data name="Diagnostics_ManualScan" xml:space="preserve">
+    <value>Manual Diagnostic Scan</value>
+  </data>
+  <data name="Diagnostics_RunScan" xml:space="preserve">
+    <value>Run Diagnostic Check</value>
+  </data>
+  <data name="Diagnostics_HealthScore" xml:space="preserve">
+    <value>Health Score</value>
+  </data>
+  <data name="Diagnostics_ActiveViolations" xml:space="preserve">
+    <value>Active Rule Violations</value>
+  </data>
+  <data name="Diagnostics_NoViolations" xml:space="preserve">
+    <value>No active rule violations detected.</value>
+  </data>
+  <data name="Diagnostics_Ready" xml:space="preserve">
+    <value>Ready to perform diagnostic scan.</value>
+  </data>
+  <data name="Diagnostics_Capturing" xml:space="preserve">
+    <value>Capturing network interface snapshots...</value>
+  </data>
+  <data name="Diagnostics_Analyzing" xml:space="preserve">
+    <value>Analyzing diagnostic engine rules...</value>
+  </data>
+  <data name="Diagnostics_AdapterError" xml:space="preserve">
+    <value>Error: Wireless adapter is not connected or metrics are unavailable.</value>
+  </data>
+  <data name="Diagnostics_Failed" xml:space="preserve">
+    <value>Diagnostic failed: {0}</value>
+  </data>
+  <data name="Diagnostics_CompleteNormal" xml:space="preserve">
+    <value>Scan complete: All systems normal.</value>
+  </data>
+  <data name="Diagnostics_CompleteIssues" xml:space="preserve">
+    <value>Scan complete: {0} issue(s) detected.</value>
+  </data>
+  <data name="Discovery_Title" xml:space="preserve">
+    <value>Network Discovery</value>
+  </data>
+  <data name="Discovery_Subtitle" xml:space="preserve">
+    <value>Scan the local subnet and run path trace diagnostics</value>
+  </data>
+  <data name="Discovery_SubnetScan" xml:space="preserve">
+    <value>Subnet Scan</value>
+  </data>
+  <data name="Discovery_ScanNetwork" xml:space="preserve">
+    <value>Scan Network</value>
+  </data>
+  <data name="Discovery_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Discovery_IpAddress" xml:space="preserve">
+    <value>IP Address</value>
+  </data>
+  <data name="Discovery_MacAddress" xml:space="preserve">
+    <value>MAC Address</value>
+  </data>
+  <data name="Discovery_Hostname" xml:space="preserve">
+    <value>Hostname</value>
+  </data>
+  <data name="Discovery_Latency" xml:space="preserve">
+    <value>Latency</value>
+  </data>
+  <data name="Discovery_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Discovery_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Discovery_Trace" xml:space="preserve">
+    <value>Trace</value>
+  </data>
+  <data name="Discovery_TracerouteDiagnostics" xml:space="preserve">
+    <value>Traceroute Diagnostics</value>
+  </data>
+  <data name="Wifi_Title" xml:space="preserve">
+    <value>Wi-Fi Explorer</value>
+  </data>
+  <data name="Wifi_Subtitle" xml:space="preserve">
+    <value>Real-time scanning and RF environment analysis</value>
+  </data>
+  <data name="Wifi_ActiveAssociation" xml:space="preserve">
+    <value>Active Association</value>
+  </data>
+  <data name="Wifi_SurroundingAPs" xml:space="preserve">
+    <value>Detected Surrounding Access Points</value>
+  </data>
+  <data name="Wifi_Signal" xml:space="preserve">
+    <value>Signal</value>
+  </data>
+  <data name="Wifi_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Wifi_Standard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="History_Title" xml:space="preserve">
+    <value>Diagnostic History</value>
+  </data>
+  <data name="History_Subtitle" xml:space="preserve">
+    <value>Stored diagnostic records and PDF report exports</value>
+  </data>
+  <data name="History_Refresh" xml:space="preserve">
+    <value>Refresh History</value>
+  </data>
+  <data name="History_Sessions" xml:space="preserve">
+    <value>Flight Recorder Sessions</value>
+  </data>
+  <data name="History_DateTime" xml:space="preserve">
+    <value>Date / Time</value>
+  </data>
+  <data name="History_ClientName" xml:space="preserve">
+    <value>Client Name</value>
+  </data>
+  <data name="History_Site" xml:space="preserve">
+    <value>Site / Location</value>
+  </data>
+  <data name="History_Snapshots" xml:space="preserve">
+    <value>Snapshots</value>
+  </data>
+  <data name="History_Events" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="History_ExportPdf" xml:space="preserve">
+    <value>Export PDF</value>
+  </data>
+  <data name="History_NoSessions" xml:space="preserve">
+    <value>No stored diagnostic sessions found.</value>
+  </data>
+  <data name="Severity_Good" xml:space="preserve">
+    <value>Healthy</value>
+  </data>
+  <data name="Severity_Info" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Severity_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Severity_Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="Rule_LOW_RSSI_Title" xml:space="preserve">
+    <value>Low Signal Strength</value>
+  </data>
+  <data name="Rule_LOW_RSSI_Description" xml:space="preserve">
+    <value>Signal strength is below optimal threshold.</value>
+  </data>
+  <data name="Rule_LOW_RSSI_Recommendation" xml:space="preserve">
+    <value>Move the device closer to the Access Point or add an additional AP to improve coverage.</value>
+  </data>
+  <data name="Rule_LOW_PHY_RATE_Title" xml:space="preserve">
+    <value>Low PHY Rate</value>
+  </data>
+  <data name="Rule_LOW_PHY_RATE_Description" xml:space="preserve">
+    <value>Wireless link rate is lower than expected for active band.</value>
+  </data>
+  <data name="Rule_LOW_PHY_RATE_Recommendation" xml:space="preserve">
+    <value>Check distance, physical obstacles, and antenna alignment.</value>
+  </data>
+  <data name="Rule_HIGH_GATEWAY_LATENCY_Title" xml:space="preserve">
+    <value>High Gateway Latency</value>
+  </data>
+  <data name="Rule_HIGH_GATEWAY_LATENCY_Description" xml:space="preserve">
+    <value>Round-trip delay to local gateway is elevated.</value>
+  </data>
+  <data name="Rule_HIGH_GATEWAY_LATENCY_Recommendation" xml:space="preserve">
+    <value>Inspect local router load and local network traffic congestion.</value>
+  </data>
+  <data name="Rule_HIGH_INTERNET_LATENCY_Title" xml:space="preserve">
+    <value>High Internet Latency</value>
+  </data>
+  <data name="Rule_HIGH_INTERNET_LATENCY_Description" xml:space="preserve">
+    <value>Upstream WAN response time exceeds acceptable threshold.</value>
+  </data>
+  <data name="Rule_HIGH_INTERNET_LATENCY_Recommendation" xml:space="preserve">
+    <value>Check ISP connection or upstream gateway congestion.</value>
+  </data>
+  <data name="Rule_HIGH_PACKET_LOSS_Title" xml:space="preserve">
+    <value>High Packet Loss</value>
+  </data>
+  <data name="Rule_HIGH_PACKET_LOSS_Description" xml:space="preserve">
+    <value>Packet loss detected across active interface.</value>
+  </data>
+  <data name="Rule_HIGH_PACKET_LOSS_Recommendation" xml:space="preserve">
+    <value>Check for RF interference, bad cabling, or network dropouts.</value>
+  </data>
+  <data name="Rule_HIGH_JITTER_Title" xml:space="preserve">
+    <value>High Jitter</value>
+  </data>
+  <data name="Rule_HIGH_JITTER_Description" xml:space="preserve">
+    <value>Latency variation is causing packet delivery delay fluctuation.</value>
+  </data>
+  <data name="Rule_HIGH_JITTER_Recommendation" xml:space="preserve">
+    <value>Reduce background network activity and channel interference.</value>
+  </data>
+  <data name="Rule_DNS_SLOW_Title" xml:space="preserve">
+    <value>Slow DNS Response</value>
+  </data>
+  <data name="Rule_DNS_SLOW_Description" xml:space="preserve">
+    <value>Domain resolution latency is elevated.</value>
+  </data>
+  <data name="Rule_DNS_SLOW_Recommendation" xml:space="preserve">
+    <value>Verify DNS server status or configure a faster DNS resolver.</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_FULL_LOSS_Title" xml:space="preserve">
+    <value>Full Connectivity Loss</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_FULL_LOSS_Description" xml:space="preserve">
+    <value>Gateway and external destinations are completely unreachable.</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_FULL_LOSS_Recommendation" xml:space="preserve">
+    <value>Check physical connection, Wi-Fi association, or restart router.</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_PARTIAL_Title" xml:space="preserve">
+    <value>Partial Connectivity Loss</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_PARTIAL_Description" xml:space="preserve">
+    <value>Local gateway reachable but internet connectivity failed.</value>
+  </data>
+  <data name="Rule_CONNECTIVITY_PARTIAL_Recommendation" xml:space="preserve">
+    <value>Verify ISP modem status and upstream WAN link.</value>
+  </data>
+  <data name="Rule_POSSIBLE_INTERFERENCE_Title" xml:space="preserve">
+    <value>Possible Wi-Fi Interference</value>
+  </data>
+  <data name="Rule_POSSIBLE_INTERFERENCE_Description" xml:space="preserve">
+    <value>Combination of low PHY rate and jitter indicates RF interference.</value>
+  </data>
+  <data name="Rule_POSSIBLE_INTERFERENCE_Recommendation" xml:space="preserve">
+    <value>Switch Wi-Fi channel to an uncrowded frequency band.</value>
+  </data>
+  <data name="Rule_SIGNAL_DEGRADATION_Title" xml:space="preserve">
+    <value>Signal Degradation</value>
+  </data>
+  <data name="Rule_SIGNAL_DEGRADATION_Description" xml:space="preserve">
+    <value>Signal quality exhibits progressive degradation.</value>
+  </data>
+  <data name="Rule_SIGNAL_DEGRADATION_Recommendation" xml:space="preserve">
+    <value>Check for moving obstacles or weak AP handoff performance.</value>
+  </data>
+
+  <!-- ── NetworkCorrelationEngine results ────────────────────────────────── -->
+  <data name="Corr_SectionTitle" xml:space="preserve">
+    <value>Correlation Analysis</value>
+  </data>
+  <data name="Corr_NoCorrelations" xml:space="preserve">
+    <value>No significant correlations detected</value>
+  </data>
+  <data name="Corr_EvidenceScore" xml:space="preserve">
+    <value>Evidence Score</value>
+  </data>
+  <data name="Corr_ContributingMetrics" xml:space="preserve">
+    <value>Contributing metrics</value>
+  </data>
+  <data name="EvidenceStrength_Moderate" xml:space="preserve">
+    <value>Moderate evidence</value>
+  </data>
+  <data name="EvidenceStrength_Strong" xml:space="preserve">
+    <value>Strong evidence</value>
+  </data>
+  <data name="EvidenceStrength_VeryStrong" xml:space="preserve">
+    <value>Very strong evidence</value>
+  </data>
+
+  <data name="Corr_WifiInstability_Title" xml:space="preserve">
+    <value>Possible Wi-Fi Instability</value>
+  </data>
+  <data name="Corr_WifiInstability_Desc" xml:space="preserve">
+    <value>Poor RF signal conditions appear to be degrading local network performance. RSSI is below acceptable levels, combined with elevated jitter and/or packet loss, while the internet path remains relatively stable.</value>
+  </data>
+  <data name="Corr_WifiInstability_Rec" xml:space="preserve">
+    <value>Move closer to the access point, reduce physical obstructions, or improve AP placement. Verify the client is not connecting to a distant BSSID.</value>
+  </data>
+
+  <data name="Corr_ExternalNetworkIssue_Title" xml:space="preserve">
+    <value>Possible External Network Issue</value>
+  </data>
+  <data name="Corr_ExternalNetworkIssue_Desc" xml:space="preserve">
+    <value>The local network and Wi-Fi connection appear stable, while the external internet path shows elevated latency or probe timeouts. The issue is likely upstream of this device (ISP or WAN).</value>
+  </data>
+  <data name="Corr_ExternalNetworkIssue_Rec" xml:space="preserve">
+    <value>Check ISP status, router WAN port, and modem logs. Contact the ISP if the problem persists.</value>
+  </data>
+
+  <data name="Corr_NetworkInstability_Title" xml:space="preserve">
+    <value>General Network Instability</value>
+  </data>
+  <data name="Corr_NetworkInstability_Desc" xml:space="preserve">
+    <value>Simultaneous degradation detected across both local and internet-side metrics. Both LAN latency and internet latency are elevated, along with jitter and packet loss, indicating a systemic problem.</value>
+  </data>
+  <data name="Corr_NetworkInstability_Rec" xml:space="preserve">
+    <value>Check router load, WAN connection health, and local network congestion. Review all active connections and running background services.</value>
+  </data>
+
+  <data name="Corr_SignalDegradation_Title" xml:space="preserve">
+    <value>Progressive Signal Decline</value>
+  </data>
+  <data name="Corr_SignalDegradation_Desc" xml:space="preserve">
+    <value>RSSI is showing a consistent downward trend over the observation window. This indicates the signal is actively worsening, not just a static low-signal condition.</value>
+  </data>
+  <data name="Corr_SignalDegradation_Rec" xml:space="preserve">
+    <value>The device may be moving away from the AP, or the AP may be reducing power. Monitor the trend and consider repositioning or enabling band steering.</value>
+  </data>
+
+  <data name="Corr_PossibleCongestion_Title" xml:space="preserve">
+    <value>Possible Network Congestion</value>
+  </data>
+  <data name="Corr_PossibleCongestion_Desc" xml:space="preserve">
+    <value>Elevated and variable latency on both LAN and internet paths, combined with high jitter, suggests possible traffic congestion or bandwidth saturation.</value>
+  </data>
+  <data name="Corr_PossibleCongestion_Rec" xml:space="preserve">
+    <value>Review active connections and traffic utilization. Check for background downloads, video streaming, or other bandwidth-intensive tasks. Consider QoS configuration.</value>
   </data>
 </root>
